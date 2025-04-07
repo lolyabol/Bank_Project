@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/registrationStyle.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="container-welcome">
+        <div class="bank-logo">
+            <img src="/images/Logo.jpg" alt="Логотип банка">
+        </div>
+        
+        <h2>Регистрация в онлайн-банке</h2>
+        
+        {{#if error}}
+            <div class="alert alert-danger">{{error}}</div>
+        {{/if}}
+
+        <form id="registrationForm" action="/registration" method="POST">
+            <div class="form-group">
+                <label for="fullName">ФИО:</label>
+                <input type="text" id="fullName" name="fullName" value="{{formData.fullName}}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Номер телефона:</label>
+                <input type="tel" id="phone" name="phone" required placeholder="+7 (XXX) XXX-XX-XX" pattern="\+7\s?[0-9]{3}\s?[0-9]{3}-?[0-9]{2}-?[0-9]{2}">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required placeholder="example@bank.ru">
+            </div>
+
+            <div class="form-group password-toggle">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required 
+                       pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                       title="Пароль должен содержать минимум 8 символов, включая цифры, заглавные и строчные буквы">
+                <span class="toggle-password" onclick="togglePasswordVisibility('password')">Показать</span>
+                <div class="password-hint">Пароль должен содержать минимум 8 символов.</div>
+            </div>
+
+            <div class="form-group password-toggle">
+                <label for="confirmPassword">Подтвердите пароль:</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+                <span class="toggle-password" onclick="togglePasswordVisibility('confirmPassword')">Показать</span>
+            </div>
+
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                <label for "agreeTerms">Я согласен с условиями обслуживания</label>
+            </div>
+
+            <button type "submit">Зарегистрироваться</button>
+
+            <p>Ваши данные защищены SSL-шифрованием.</p>
+            
+            {{#if error}}
+                <p class='error-message'>{{error}}</p>
+            {{/if}}
+            
+            <p>Уже зарегистрированы? <a href="/login">Войти в онлайн-банк</a></p>
+            
+         </form>  
+     </div> 
+</div>
+
+<script>
+function togglePasswordVisibility(fieldId) {
+   const passwordField = document.getElementById(fieldId);
+   const toggleButton = passwordField.nextElementSibling;
+
+   if (passwordField.type === "password") {
+       passwordField.type = "text";
+       toggleButton.textContent = "Скрыть";
+   } else {
+       passwordField.type = "password";
+       toggleButton.textContent = "Показать";
+   }
+}
+</script>
+
+</body>
+</html>

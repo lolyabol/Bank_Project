@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение телефона</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles/registrationStyle.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="container-welcome">
+        <div class="bank-logo">
+            <img src="/images/Logo.jpg" alt="Логотип банка">
+        </div>
+        <h2>Подтверждение телефона</h2>
+        <p>На номер {{phone}} был отправлен SMS-код подтверждения</p>
+        <hr> 
+        <form id="verifyForm" action="/verify-phone" method="POST">
+            <div class="form-group">
+                <label for="verificationCode">Код подтверждения:</label>
+                <input type="text" id="verificationCode" name="verificationCode" required 
+                       placeholder="Введите 6-значный код">
+            </div>
+            
+            <button type="submit" class="btn-primary">Подтвердить</button>
+            
+            <div class="security-info">
+                <p>Не получили код? <a href="/resend-code">Отправить повторно</a></p>
+            </div>
+            
+            <div class="message error-message" id="error-message">{{error}}</div>
+        </form>
+    </div> 
+</div>
+
+</body>
+</html>

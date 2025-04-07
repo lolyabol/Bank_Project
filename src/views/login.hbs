@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/styles/loginStyle.css">
+</head>
+<body>
+    <div class="container">
+        <div class="container-welcome">
+            <h1>Добро пожаловать</h1>
+            <p>Пожалуйста, войдите в свою учетную запись</p>
+        </div>
+        <div class="form-container">
+            <form action="/login" method="POST">
+                <label>
+                    <input type="email" name="email" required placeholder="Email" />
+                </label>
+                <label>
+                    <input type="password" name="password" required placeholder="Пароль" />
+                </label>
+                <button type="submit">Войти</button>
+            </form>
+            <p>Ещё нет аккаунта? <a href="/registration">Зарегистрироваться</a></p>
+        </div>
+    </div>
+</body>
+</html>
