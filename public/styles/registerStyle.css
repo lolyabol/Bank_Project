@@ -1,0 +1,84 @@
+/* styles/styles.css */
+
+/* Общие стили */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    width: 20%;
+}
+/* Заголовки */
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* Форма */
+form {
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    padding: 30px;
+    max-width: 40vw; /* Максимальная ширина формы */
+    max-height: 50vh;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"], 
+input[type="password"], 
+input[type="email"] {
+    width: calc(100% - 20px); /* Полная ширина с учетом отступов */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    transition: border-color 0.3s;
+}
+
+input:focus {
+    border-color: #2980b9; /* Синий цвет при фокусе */
+    outline: none;
+}
+
+/* Кнопки */
+button {
+    background-color: #2980b9; /* Синий цвет */
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.3s;
+    width: 100%; /* Полная ширина кнопки */
+}
+
+button:hover {
+    background-color: #3498db; /* Светлее синий при наведении */
+    transform: translateY(-2px);
+}
+
+/* Ссылки */
+a {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #2980b9;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

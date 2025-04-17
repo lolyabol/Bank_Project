@@ -4,10 +4,14 @@ import { engine } from 'express-handlebars';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import crypto from 'crypto';
-import connectDB from './src/db.js';
-import registrationRouter from './src/routes/registrationRouter.js';
-import loginRouter from './src/routes/loginRouter.js';
-import mainRouter from './src/routes/mainRouter.js';
+import cookieParser from 'cookie-parser';
+import connectDB from './db.js';
+import mainRoutes from './routes/mainRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import dotenv from 'dotenv';
+import { layoutSelector } from './middlewares/layoutMiddleware.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,14 +19,22 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-app.engine('hbs', engine({
+// Регистрация хелперов
+const hbs = engine({
     extname: '.hbs',
     defaultLayout: 'main',
-    layoutsDir: join(__dirname, 'src/views/layouts/'),
-    partialsDir: join(__dirname, 'src/views/partials/'),
-}));
+    layoutsDir: join(__dirname, 'views/layouts/'),
+    partialsDir: join(__dirname, 'views/partials/'),
+    helpers: {
+        formatDate: (date) => {
+            return new Date(date).toLocaleDateString(); // Настройте формат по необходимости
+        }
+    }
+});
+app.use(layoutSelector);
+app.engine('hbs', hbs);
 app.set('view engine', 'hbs');
-app.set('views', join(__dirname, 'src/views'));
+app.set('views', join(__dirname, 'views'));
 
 app.use(express.static(join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
@@ -31,25 +43,17 @@ app.use(express.json());
 app.use(session({
     secret: process.env.SESSION_SECRET || crypto.randomBytes(64).toString('hex'),
     resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 
-    }
+    saveUninitialized: true,
+    cookie: { secure: false }
 }));
-
+app.use(cookieParser());
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
     next();
 });
 
-app.use('/', registrationRouter);
-app.use('/login', loginRouter);
-app.use('/main', mainRouter);
-
-app.use((req, res) => {
-    res.status(404).render('404', { title: 'Страница не найдена' });
-});
+app.use('/', authRoutes);
+app.use('/main', mainRoutes);
 
 const startServer = async () => {
     try {

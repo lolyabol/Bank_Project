@@ -1,3 +1,5 @@
+import User from '../models/User.js'; // Импортируйте модель User
+import Account from '../models/Account.js'; // Импортируйте модель Account
 
 export const VerifyPhonePage = (req, res) => {
     if (!req.session.registrationData) {
@@ -23,7 +25,23 @@ export const verifyPhoneController = async (req, res) => {
             throw new Error('Неверный код подтверждения');
         }
 
-        req.session.userId = req.session.registrationData.userId;
+        // Получаем userId из session
+        const userId = req.session.registrationData.userId;
+
+        // Находим пользователя по userId
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            throw new Error('Пользователь не найден');
+        }
+
+        // Обновляем пользователя с новым полем accountId
+        user.isPhoneVerified = true; // Устанавливаем флаг проверки телефона
+        await user.save();
+
+        console.log('Пользователь обновлен с ID аккаунта:', user);
+
+        // Удаляем registrationData из сессии
         delete req.session.registrationData;
 
         return res.redirect('/registration-success');

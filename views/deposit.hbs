@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пополнение счета</title>
+</head>
+<body>
+    <h1>Пополнение счета</h1>
+    <form action="/main/deposit" method="POST">
+        <input type="hidden" name="accountId" value="{{account._id}}">
+        <label for="amount">Сумма:</label>
+        <input type="number" name="amount" required>
+        <button type="submit">Пополнить</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/styles/mainStyle.css">
+</head>
+<body class="mainBody">
+    <header class="mainHeader">
+        <h1 class="mainH1">Добро пожаловать в Гойда-банк!{{name}}</h1>
+        <nav class="mainNav">
+            <ul>
+                <li><a href="/main/home">Домой</a></li>
+                <li><a href="/main/account">Мои счета</a></li>
+                <li><a href="/main/transactions">Транзакции</a></li>
+                <li><a href="/login">Сменить аккаунт</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="content">
+        {{{body}}} 
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Наш Банк</p>
+    </footer>
+</body>
+</html>

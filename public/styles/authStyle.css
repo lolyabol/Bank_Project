@@ -1,0 +1,57 @@
+html, body {
+    height: 100%;
+    margin: 0;
+  }
+  
+  .authBody {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* высота окна браузера */
+  }
+  
+  .authHeader {
+    background: #007bff;
+    color: #ffffff;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-shrink: 0; /* не сжимается */
+    height: 10vh;
+    text-align: center;
+  }
+  
+  .authH1 {
+    color: #ffffff;
+    margin: 0; /* убрать отступы */
+  }
+  
+  .authMain {
+    flex-grow: 1; /* занимает всё доступное пространство */
+    padding: 20px;
+    width: 100%;
+    overflow-y: auto; /* вертикальная прокрутка при переполнении */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  footer {
+    background-color: #007bff;
+    color: #ffffff;
+    text-align: center;
+    
+    padding: 10px 0;
+    
+    width: 100%;
+    
+    flex-shrink: 0; /* не сжимается */
+  }
+  
+  /* Скрыть скроллбар (опционально) */
+  ::-webkit-scrollbar {
+      display: none;
+  }

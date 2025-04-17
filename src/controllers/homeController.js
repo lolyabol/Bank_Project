@@ -1,4 +1,7 @@
-export function HomePage(req, res) {
-    const user = req.user; 
-       res.render('home', { user }); 
-}
+export const getHomePage = (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/login'); // Если пользователь не авторизован, перенаправляем на страницу логина
+    }
+
+    res.render('home', { title: 'Добро пожаловать', user: req.session.email });
+};

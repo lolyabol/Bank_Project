@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>История транзакций</title>
+    <link rel="stylesheet" href="/styles/transactionStyle.css" />
+</head>
+<body>
+<main>
+    <h1>История ваших транзакций</h1>
+
+    {{#if transactions.length}}
+        <ul>
+            {{#each transactions}}
+              <div class="transactionContainer">
+                  <li>
+                    <strong>{{formattedDate}}</strong>: {{type}} - <span style="color: #2ecc71;">{{amount}} ₽</span>
+                  </li>
+              </div>
+            {{/each}}
+        </ul>
+    {{else}}
+        <p>У вас нет последних транзакций.</p>
+    {{/if}}
+
+    <button onclick="location.href='/main/home'">Назад на главную</button>
+</main>
+</body>
+</html>

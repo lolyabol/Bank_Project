@@ -26,7 +26,7 @@ export const handleLogin = async (req, res) => {
         req.session.userId = user._id;
         req.session.email = user.email;
 
-        return res.redirect('/main');
+        return res.redirect('/main/home'); // Перенаправляем на страницу home
     } catch (error) {
         console.error('Ошибка во время входа:', error);
         return res.status(500).json({ message: 'Ошибка сервера' });

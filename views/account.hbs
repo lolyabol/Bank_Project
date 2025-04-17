@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Информация о счете</title>
+  <link rel="stylesheet" href="/styles/accountStyle.css" />
+</head>
+<body>
+
+<h2>Информация о вашем счете</h2>
+<p>Номер счета: {{account.accountNumber}}</p>
+<p>Баланс: {{account.balance}} {{account.currency}}</p>
+<p>Статус: {{account.status}}</p>
+<p>Дата создания: {{formatDate account.createdAt}}</p>
+
+<h3>Данные пользователя</h3>
+<p>Имя пользователя: {{account.userId.fullName}}</p>
+<p>Email: {{account.userId.email}}</p>
+<p>Телефон: {{account.userId.phone}}</p>
+
+</body>
+</html>

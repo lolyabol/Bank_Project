@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
+    <link rel="stylesheet" href="/styles/loginStyle.css">
+</head>
+<body>
+
+<h1>Вход в систему</h1>
+
+<form action="/login" method="POST">
+    <label for="email">Email:</label><br/>
+    <input type="text" id="email" name="email" required><br/>
+
+    <label for="password">Пароль:</label><br/> <!-- Исправлено: добавлены = и кавычки -->
+    <input type="password" id="password" name="password" required/><br/> <!-- Исправлено: добавлены = и кавычки -->
+
+    <button type="submit">Войти</button> <!-- Исправлено: добавлены = и кавычки -->
+
+    <a href="/">Нет аккаунта? Зарегистрироваться</a>
+</form>
+
+</body>
+</html>

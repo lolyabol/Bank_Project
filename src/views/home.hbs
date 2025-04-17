@@ -1,76 +1,25 @@
+{{!-- home.hbs --}}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Главная страница - [Название банка]</title>
-    <link rel="stylesheet" href="/styles/homeStyle.css"> 
+    <title>{{title}}</title>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <h1>[Название банка]</h1>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="/">Главная</a></li>
-                <li><a href="/services">Услуги</a></li>
-                <li><a href="/about">О нас</a></li>
-                <li><a href="/contact">Контакты</a></li>
-                <li><a href="/login">Вход</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <main>
-        <section class="welcome">
-            <h2>Добро пожаловать в [Название банка]!</h2>
-            <p>Мы предлагаем широкий спектр банковских услуг для удовлетворения ваших финансовых потребностей.</p>
-        </section>
-
-        <section class="services">
-            <h3>Наши услуги</h3>
-            <ul>
-                <li>Открытие счета</li>
-                <li>Кредиты</li>
-                <li>Дебетовые и кредитные карты</li>
-                <li>Инвестиционные услуги</li>
-            </ul>
-        </section>
-
-        <section class="news">
-            <h3>Новости банка</h3>
-            <p>Последние новости и обновления...</p>
-        </section>
-
-        <section class="promotions">
-            <h3>Специальные предложения</h3>
-            <p>Узнайте о наших специальных предложениях!</p>
-        </section>
-
-        <section class="about">
-            <h3>О нас</h3>
-            <p>[Краткая информация о банке]</p>
-        </section>
-
-    </main>
+    <h1>Добро пожаловать, {{user}}!</h1> <!-- Используем email пользователя -->
+    <p>Вы успешно вошли в систему.</p>
+    
+    <h2>Основной функционал банка:</h2>
+    <ul>
+        <li><a href="/main/bank">Перейти в банк</a></li>
+        <li><a href="/transfer">Переводы</a></li>
+        <li><a href="/loan">Кредиты</a></li>
+        <!-- Добавьте другие ссылки на функционал -->
+    </ul>
 
     <footer>
-        <div class="contact-info">
-            <p>Контактная информация: [Телефон, Email]</p>
-        </div>
-        <div class="social-media">
-            {{!-- <a href="#">Facebook</a> | 
-            <a href="#">Twitter</a> | 
-            <a href="#">Instagram</a> --}}
-        </div>
-
-        <div class="legal">
-            <p><a href="/privacy-policy">Политика конфиденциальности</a></p>
-            <p><a href="/terms-of-service">Условия использования</a></p>
-        </div>
-
+        <p>&copy; 2023 Ваш Банк</p>
     </footer>
-    
 </body>
 </html>

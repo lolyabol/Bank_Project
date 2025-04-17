@@ -3,32 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist Dropdown Menu</title>
+    <title>{{title}} | Банк</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles/mainStyle.css">
+    <link rel="stylesheet" href="/styles/bank.css"> <!-- Добавим отдельный CSS для банковских компонентов -->
 </head>
 <body>
   <div class="layout"> 
     <div class="header">
       <nav role="navigation">
         <div id="menuToggle">
-      <input type="checkbox" id="menuCheckbox" />
-      <span></span>
-      <span></span>
-      <span></span>
+          <input type="checkbox" id="menuCheckbox" />
+          <span></span>
+          <span></span>
+          <span></span>
           <ul id="menu" class="hidden">
             <a href="/main/home"><li>Домой</li></a>
+            <a href="/main/bank"><li>Банк</li></a> <!-- Добавим пункт меню -->
             <a href="/main/about"><li>О нас</li></a>
-            <a href="/main/calorieCalculator"><li>Калькулятор калорий</li></a>
-            <a href="/main/menuConstructor"><li>Конструктор меню</li></a>
-            <a href="/main/userMenu"><li>Меню</li></a>
             {{#if user}}
-            <div class="calorieNormContainer">
-              <p class="calorieNormP">Ваша суточная норма калорий: {{user.dailyCalorieIntake}} калорий</p>
-              </div>
-            {{else}}
-            <div class="calorieNormContainer">
-              <p class="calorieNormP">Ваша норма калорий ещё не известна, но это самый подходящий момент узнать её!</p>
+              <div class="account-info">
+                <p class="balance-info">Баланс: <span id="currentBalance">{{user.account.balance}}</span> ₽</p>
               </div>
             {{/if}}
             <div class="switchAcc"><a href="/login">Сменить аккаунт?</a></div>
@@ -36,10 +31,13 @@
         </div>
       </nav>
     </div>
-</div>
-    <main>
-      {{{body}}}
-    </main>
+  </div>
+  
+  <main>
+    {{{body}}}
+  </main>
+  
   <script src="/scripts/mainScript.js"></script>
+  <script src="/scripts/bank.js"></script> <!-- Добавим банковские скрипты -->
 </body>
 </html>

@@ -1,0 +1,85 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh; /* Занять всю высоту экрана */
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.transactionContainer {
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #ffffff;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.transactionContainer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    width: 100%; /* Ширина списка */
+}
+
+li {
+    margin: 10px 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333; /* Цвет текста для списка */
+}
+
+.greeting p {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: #27ae60;
+}
+
+button {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 25px;
+    margin-top: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.3s;
+    width: 200px; /* Установим фиксированная ширина кнопки */
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #3498db;
+    transform: translateY(-2px);
+}
+

@@ -1,34 +1,84 @@
+/* styles/homeStyle.css */
+
+/* Общие стили */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
+    color: #333;
     margin: 0;
     padding: 0;
 }
 
-header {
-    background-color: #004080; 
-    color: white;
-    padding: 10px;
+/* Заголовки */
+h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
-header nav ul {
+/* Основные секции */
+section {
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    padding: 25px;
+    max-width: 600px;
+    transition: all 0.3s;
+}
+
+section:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Стили списка */
+ul {
     list-style-type: none;
+    padding: 0;
 }
 
-header nav ul li {
-    display: inline;
-    margin-right: 20px;
+li {
+    margin: 15px 0;
+    font-size: 16px;
+    line-height: 1.6;
 }
 
-header nav a {
+/* Стили для текста баланса */
+.greeting p {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: #27ae60; /* Зеленый цвет для положительного баланса */
+}
+
+/* Кнопки */
+button {
+    background-color: #2980b9; /* Синий цвет */
     color: white;
-    text-decoration: none;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 25px;
+    margin: 10px 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, transform 0.3s;
+    display: inline-block;
+    width: calc(100% - 20px); /* Полная ширина с учетом отступов */
+    font-weight: bold;
 }
 
-main {
-    padding: 20px;
+button:hover {
+    background-color: #3498db; /* Светлее синий при наведении */
+    transform: translateY(-2px);
 }
 
-footer {
-    background-color: #f1f1f1; 
-    padding: 10px;
+/* Альтернативный стиль для кнопки "Посмотреть историю транзакций" */
+.recent-transactions button {
+    background-color: #e67e22; /* Оранжевый */
+}
+
+.recent-transactions button:hover {
+    background-color: #d35400; /* Темнее при наведении */
 }

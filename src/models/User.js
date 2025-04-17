@@ -21,6 +21,11 @@ const userSchema = new mongoose.Schema({
         minlength: 8,
         select: false 
     },
+    account: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Account',
+        required: false // Это поле теперь необязательное
+    },
 
     isPhoneVerified: { type: Boolean, default: false }, 
     isEmailVerified: { type: Boolean, default: false }, 
