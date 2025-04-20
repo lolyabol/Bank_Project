@@ -19,7 +19,6 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Регистрация хелперов
 const hbs = engine({
     extname: '.hbs',
     defaultLayout: 'main',
@@ -27,7 +26,7 @@ const hbs = engine({
     partialsDir: join(__dirname, 'views/partials/'),
     helpers: {
         formatDate: (date) => {
-            return new Date(date).toLocaleDateString(); // Настройте формат по необходимости
+            return new Date(date).toLocaleDateString(); 
         }
     }
 });
