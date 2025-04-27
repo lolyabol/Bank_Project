@@ -2,12 +2,10 @@ import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-// Регистрация пользователя
 export const registerUser = async (req, res) => {
   const { username, password, email, phone, fullName } = req.body;
 
   try {
-    // Проверяем, существует ли пользователь с таким email
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'Пользователь с таким адресом электронной почты уже существует.' });
@@ -17,15 +15,15 @@ export const registerUser = async (req, res) => {
     const newUser = new User({ username, password: hashedPassword, email, phone, fullName });
     await newUser.save();
 
-    // Перенаправляем на страницу создания аккаунта
-    res.redirect(`/create-account?userId=${newUser._id}`);
+    req.session.userId = newUser._id;
+
+    res.redirect('/createAccount'); 
   } catch (error) {
     console.error('Ошибка при регистрации:', error);
     res.status(500).json({ message: 'Ошибка при регистрации', error });
   }
 };
 
-// Вход пользователя
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -41,17 +39,23 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     
     res.cookie('token', token);
-    
-    // Перенаправляем на главную страницу после успешного входа
-    res.redirect('/main/home'); // Измените на нужный маршрут для главной страницы
+
+    req.session.userId = user._id;
+
+    res.redirect('/main/home');
   } catch (error) {
-    console.error('Ошибка при входе:', error); // Логируем ошибку
+    console.error('Ошибка при входе:', error); 
     res.status(500).json({ message: 'Ошибка при входе', error });
   }
 };
 
-// Выход пользователя
 export const logoutUser = (req, res) => {
   res.clearCookie('token');
-  res.redirect('/login');
+  req.session.destroy(err => {
+      if (err) {
+          console.error('Ошибка при выходе:', err);
+          return res.status(500).send('Ошибка при выходе');
+      }
+      res.redirect('/login');
+  });
 };

@@ -14,24 +14,37 @@
             {{#if account.savingsBalance}}
                 <p>Баланс сберегательного счета: {{account.savingsBalance}} ₽</p>
             {{/if}}
-        </section>
-
+        
+        {{#if upcomingPayments.length}}
+  <div class="notifications">
+    <h3>Ближайшие платежи по кредитам:</h3>
+    <ul>
+      {{#each upcomingPayments}}
+        <li>
+          {{formatDate this.date}}: {{this.amount}} {{this.currency}} 
+          ({{this.loanId}})
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+{{/if}}
+</section>
         <section class="bank-services">
             <h2>Возможности нашего банка</h2>
             <ul>
                 <li><strong>Переводы:</strong> Быстрые и безопасные переводы между счетами.</li>
                 <li><strong>Оплата счетов:</strong> Удобная оплата коммунальных услуг и других счетов.</li>
+                <li><strong>Сберегательный счёт:</strong> Удобное хранение средств на сберегательном счёте.</li>
                 <li><strong>Кредиты:</strong> Конкурентные ставки на кредиты и ипотеку.</li>
-                <li><strong>Инвестиции:</strong> Возможности для инвестирования в различные финансовые инструменты.</li>
-                <li><strong>Мобильное приложение:</strong> Управляйте своими финансами в любое время и в любом месте.</li>
             </ul>
         </section>
 
         <section class="quick-actions">
     <h2>Быстрые действия</h2>
     <button onclick="location.href='/main/deposit'">Пополнить счет</button>
-    <button onclick="location.href='/main/transfer'">Перевести средства между счетами</button>
-    <button onclick="location.href='/main/savings-account/create'">Создать сберегательный счет</button>
+    <button onclick="location.href='/main/transfer'">Перевести средства на другой счёт</button>
+    <button onclick="location.href='/main/saving-account/create'">Создать сберегательный счет</button>
+    <button onclick="location.href='/main/loans/new'">Оформить кредит</button>
 </section>
 
         <section class="recent-transactions">

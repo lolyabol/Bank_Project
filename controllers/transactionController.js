@@ -3,21 +3,21 @@ import Transaction from '../models/Transaction.js';
 export const getTransactionsPage = async (req, res) => {
     try {
         const userId = req.user.id;
-        const transactions = await Transaction.find({ userId }).lean();
+        const transactions = await Transaction.find({ userId }).populate('sourceUserId').lean();
 
-        // Форматируем дату для удобного отображения
         transactions.forEach(tx => {
             tx.formattedDate = tx.date ? new Date(tx.date).toLocaleString('ru-RU') : '';
+            tx.sourceUserName = tx.sourceUserId ? tx.sourceUserId.name : ''; 
         });
 
-        res.render('transactions', { transactions }); // Рендерим отдельную страницу
+        res.render('transactions', { transactions });
     } catch (error) {
         res.status(500).json({ message: 'Ошибка при получении транзакций', error });
     }
 };
 
 export const createTransaction = async (req, res) => {
-    const { amount } = req.body;
+    const { amount } = req.body; 
     
     try {
         const amountNumber = Number(amount);
@@ -31,6 +31,7 @@ export const createTransaction = async (req, res) => {
             userId: req.user.id,
             amount: Math.abs(amountNumber),
             type: transactionType,
+            sourceUserId: req.user.id 
         });
 
         await transaction.save();

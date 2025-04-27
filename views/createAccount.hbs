@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать аккаунт</title>
+</head>
+<body>
+    <h1>Создать новый аккаунт</h1>
+
+    {{#if message}}
+        <div style="color: green;">
+            <p>{{message}}</p>
+        </div>
+    {{/if}}
+
+    <form action="/createAccount" method="POST"> 
+        <label for="userId">ID пользователя:</label>
+        <p id="userId">{{userId}}</p>
+
+        <label for="phone">Номер телефона:</label>
+        <p id="phone">{{phone}}</p>
+
+        <label for="name">Имя:</label>
+        <p id="name">{{name}}</p>
+
+        <label for="currency">Валюта:</label>
+        <select id="currency" name="currency" required>
+            <option value="RUB">Рубль (RUB)</option>
+            <option value="USD">Доллар (USD)</option>
+            <option value="EUR">Евро (EUR)</option>
+        </select>
+
+        <button type="submit">Создать аккаунт</button>
+    </form>
+
+    <p>Уже есть аккаунт? <a href="/login">Войдите здесь</a></p> 
+</body>
+</html> 

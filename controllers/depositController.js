@@ -14,7 +14,6 @@ export const getDepositPage = async (req, res) => {
 export const postDeposit = async (req, res) => {
     const { accountId, amount } = req.body;
 
-    // Преобразуем amount к числу
     const amountNumber = Number(amount);
 
     if (isNaN(amountNumber) || amountNumber <= 0) {
@@ -23,7 +22,7 @@ export const postDeposit = async (req, res) => {
 
     try {
         await Account.findByIdAndUpdate(accountId, { $inc: { balance: amountNumber } });
-        res.redirect('/main/home'); // Перенаправление на главную страницу после успешного пополнения
+        res.redirect('/main/home'); 
     } catch (error) {
         console.error(error);
         res.status(500).send('Ошибка при пополнении счета.');

@@ -1,6 +1,3 @@
-/* styles/homeStyle.css */
-
-/* Общие стили */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7fa;
@@ -9,7 +6,6 @@ body {
     padding: 0;
 }
 
-/* Заголовки */
 h2 {
     text-align: center;
     color: #2c3e50;
@@ -18,7 +14,6 @@ h2 {
     font-weight: bold;
 }
 
-/* Основные секции */
 section {
     background: #ffffff;
     border-radius: 15px;
@@ -33,7 +28,6 @@ section:hover {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
-/* Стили списка */
 ul {
     list-style-type: none;
     padding: 0;
@@ -45,17 +39,15 @@ li {
     line-height: 1.6;
 }
 
-/* Стили для текста баланса */
 .greeting p {
     font-size: 20px;
     font-weight: bold;
     text-align: center;
-    color: #27ae60; /* Зеленый цвет для положительного баланса */
+    color: #27ae60; 
 }
 
-/* Кнопки */
 button {
-    background-color: #2980b9; /* Синий цвет */
+    background-color: #2980b9; 
     color: white;
     border: none;
     border-radius: 25px;
@@ -65,20 +57,19 @@ button {
     font-size: 16px;
     transition: background-color 0.3s, transform 0.3s;
     display: inline-block;
-    width: calc(100% - 20px); /* Полная ширина с учетом отступов */
+    width: calc(100% - 20px); 
     font-weight: bold;
 }
 
 button:hover {
-    background-color: #3498db; /* Светлее синий при наведении */
+    background-color: #3498db; 
     transform: translateY(-2px);
 }
 
-/* Альтернативный стиль для кнопки "Посмотреть историю транзакций" */
 .recent-transactions button {
-    background-color: #e67e22; /* Оранжевый */
+    background-color: #e67e22; 
 }
 
 .recent-transactions button:hover {
-    background-color: #d35400; /* Темнее при наведении */
+    background-color: #d35400; 
 }

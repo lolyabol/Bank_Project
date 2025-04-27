@@ -9,6 +9,7 @@ const generateUniqueAccountNumber = async () => {
 
   while (!isUnique) {
       accountNumber = '40702' + Math.floor(100000 + Math.random() * 900000); 
+      console.log(`Сгенерированный номер аккаунта: ${accountNumber}`);
       
       const existingAccount = await Account.findOne({ accountNumber });
       isUnique = !existingAccount; 
@@ -18,7 +19,11 @@ const generateUniqueAccountNumber = async () => {
 };
 
 export const createAccount = async (req, res) => {
-  const { userId } = req.query;
+  const userId = req.session.userId;
+
+  if (!userId) {
+    return res.status(401).send('Пользователь не авторизован');
+  }
 
   try {
     const user = await User.findById(userId);
@@ -26,18 +31,58 @@ export const createAccount = async (req, res) => {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
+    const message = req.query.message || null;
+
+    res.render('createAccount', { 
+      userId: user._id, 
+      phone: user.phone, 
+      name: user.name,
+      message 
+    });
+  } catch (error) {
+    console.error('Ошибка при получении данных пользователя:', error);
+    res.status(500).send('Ошибка при получении данных пользователя.');
+  }
+};
+
+export const createAccountPost = async (req, res) => {
+  const userId = req.session.userId;
+  console.log('Создание аккаунта...');
+
+  if (!userId) {
+    return res.status(401).json({ message: 'Пользователь не авторизован' });
+  }
+
+  const { currency } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+
+    const existingMainAccount = await Account.findOne({ userId, isMain: true });
+    if (existingMainAccount) {
+      return res.status(400).json({ message: 'Основной счет уже существует' });
+    }
+
     const accountNumber = await generateUniqueAccountNumber();
 
     const newAccount = new Account({
       userId: user._id,
-      accountNumber, 
+      accountNumber,
       balance: 0,
-      currency: 'RUB',
+      currency: currency || 'RUB',
+      phone: user.phone,
+      name: user.name,
+      isMain: true,  
+      isSavings: false  
     });
 
     await newAccount.save();
+    console.log(`Новый основной аккаунт создан: ${newAccount}`);
 
-    res.redirect(`/main/home`);
+    res.redirect(`/login`);
   } catch (error) {
     console.error('Ошибка при создании аккаунта:', error);
     res.status(500).json({ message: 'Ошибка при создании аккаунта', error });
@@ -45,21 +90,25 @@ export const createAccount = async (req, res) => {
 };
 
 export const accountCreated = async (req, res) => {
-    const { userId } = req.query;
-  
-    try {
-      const account = await Account.findOne({ userId }).sort({ createdAt: -1 });
-  
-      if (!account) {
-        return res.status(404).send('Аккаунт не найден.');
-      }
+  const userId = req.session.userId;
 
-      res.render('accountCreated', { account });
-    } catch (error) {
-      console.error('Ошибка при получении информации об аккаунте:', error);
-      res.status(500).send('Ошибка при получении информации об аккаунте.');
+  if (!userId) {
+    return res.status(401).send('Пользователь не авторизован');
+  }
+
+  try {
+    const account = await Account.findOne({ userId }).sort({ createdAt: -1 });
+
+    if (!account) {
+      return res.status(404).send('Аккаунт не найден.');
     }
-  };
+
+    res.render('accountCreated', { account });
+  } catch (error) {
+    console.error('Ошибка при получении информации об аккаунте:', error);
+    res.status(500).send('Ошибка при получении информации об аккаунте.');
+  }
+};
 
 export const getAccountsPage = async (req, res) => {
   try {
@@ -103,7 +152,7 @@ export const depositToAccount = async (req, res) => {
     await transaction.save();
       await transaction.save();
 
-      res.redirect('/main/home'); // Редирект на главную страницу после пополнения
+      res.redirect('/main/home'); 
     } catch (error) {
         res.status(500).json({ message: 'Ошибка при пополнении счета', error });
     }
@@ -122,14 +171,10 @@ export const transferBetweenAccounts = async (req, res) => {
       return res.status(400).json({ error: 'Некорректная сумма перевода' });
     }
 
-    // Находим активный счет отправителя
     const fromAccount = await Account.findOne({ userId: req.user.id, status: 'active' });
     if (!fromAccount) {
       return res.status(404).json({ error: 'Активный счёт отправителя не найден' });
     }
-
-    // Ищем пользователя-получателя по телефону или имени
-    // Предполагается, что в модели User есть поля phone и name
     const recipientUser = await User.findOne({
       $or: [
         { phone: recipientIdentifier },
@@ -141,7 +186,6 @@ export const transferBetweenAccounts = async (req, res) => {
       return res.status(404).json({ error: 'Пользователь-получатель не найден' });
     }
 
-    // Находим активный счет получателя
     const toAccount = await Account.findOne({ userId: recipientUser._id, status: 'active' });
     if (!toAccount) {
       return res.status(404).json({ error: 'Активный счёт получателя не найден' });
@@ -209,7 +253,7 @@ export const transferBetweenAccounts = async (req, res) => {
 
        if (
          error.message.includes('Недостаточно средств')
-       ) statusCode = 409; // конфликт
+       ) statusCode = 409; 
 
        return res.status(statusCode).json({ error: error.message });
     }

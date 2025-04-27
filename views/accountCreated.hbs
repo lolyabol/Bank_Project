@@ -1,5 +1,13 @@
-<h1>Аккаунт создан!</h1>
-<p>Номер счета: {{account.accountNumber}}</p>
-<p>Баланс: {{account.balance}} {{account.currency}}</p>
-<p>Статус: {{account.status}}</p>
-<p>Дата создания: {{formatDate account.createdAt}}</p>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аккаунт создан</title>
+</head>
+<body>
+    <h1>Аккаунт успешно создан!</h1>
+    <p>Ваш новый номер счета: {{account.accountNumber}}</p>
+    
+    <a href="/main/home">Вернуться на главную страницу</a>
+</body>
+</html>

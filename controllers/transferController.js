@@ -7,21 +7,19 @@ export const getTransferPage = (req, res) => {
 };
 
 export const transferBetweenAccounts = async (req, res) => {
-  const { fromAccountId, toAccountId, amount } = req.body;
+  const { fromAccountId, recipientIdentifier, amount } = req.body;
 
   try {
-    // Проверка аутентификации
     if (!req.user || !req.user._id) {
       return res.status(401).json({ error: 'Пользователь не аутентифицирован' });
     }
 
-    // Проверяем корректность суммы
     const transferAmount = Number(amount);
     if (isNaN(transferAmount) || transferAmount <= 0) {
       return res.status(400).json({ error: 'Некорректная сумма перевода' });
     }
 
-    if (fromAccountId === toAccountId) {
+    if (fromAccountId === recipientIdentifier) {
       return res.status(400).json({ error: 'Нельзя переводить средства на тот же счёт' });
     }
 
@@ -29,7 +27,6 @@ export const transferBetweenAccounts = async (req, res) => {
     session.startTransaction();
 
     try {
-      // Находим счет отправителя и проверяем принадлежность текущему пользователю
       const fromAccount = await Account.findOne({ accountNumber: fromAccountId, status: 'active' }).session(session);
       if (!fromAccount) {
         throw new Error('Счёт отправителя не найден или не активен');
@@ -39,35 +36,36 @@ export const transferBetweenAccounts = async (req, res) => {
         throw new Error('У вас нет прав на перевод с этого счёта');
       }
 
-      // Находим счет получателя
-      const toAccount = await Account.findOne({ accountNumber: toAccountId, status: 'active' }).session(session);
+      let toAccount = await Account.findOne({ accountNumber: recipientIdentifier, status: 'active' }).session(session);
+      
       if (!toAccount) {
-        throw new Error('Счёт получателя не найден или не активен');
+        toAccount = await Account.findOne({ phone: recipientIdentifier, status: 'active' }).session(session);
+        if (!toAccount) {
+          throw new Error('Счёт получателя не найден или не активен');
+        }
       }
 
       if (fromAccount.balance < transferAmount) {
         throw new Error('Недостаточно средств на счёте отправителя');
       }
 
-      // Обновляем балансы
       fromAccount.balance -= transferAmount;
       toAccount.balance += transferAmount;
 
       await fromAccount.save({ session });
       await toAccount.save({ session });
 
-      // Создаём транзакции
       const debitTransaction = new Transaction({
         userId: fromAccount.userId,
         amount: transferAmount,
-        type: 'Перевод отправлен', // заменили 'Перевод'
+        type: 'Перевод отправлен',
         date: new Date(),
       });
       
       const creditTransaction = new Transaction({
         userId: toAccount.userId,
         amount: transferAmount,
-        type: 'Перевод получен', // заменили 'Пополнение'
+        type: 'Перевод получен',
         date: new Date(),
       });
 
@@ -86,7 +84,6 @@ export const transferBetweenAccounts = async (req, res) => {
 
       console.error(`Ошибка при переводе пользователя ${req.user._id}:`, error.message);
 
-      // Более детальная обработка ошибок по типу
       let statusCode = 400;
       
       if (
@@ -101,7 +98,7 @@ export const transferBetweenAccounts = async (req, res) => {
 
        if (
          error.message.includes('Недостаточно средств')
-       ) statusCode = 409; // конфликт
+       ) statusCode = 409; 
 
        return res.status(statusCode).json({ error: error.message });
     }

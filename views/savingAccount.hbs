@@ -1,0 +1,16 @@
+<h1>Сберегательный счет</h1>
+
+<p>Номер счета: {{account.accountNumber}}</p>
+<p>Баланс: {{account.balance}} {{account.currency}}</p>
+<p>Статус: {{account.status}}</p>
+
+<h2>Пополнить сберегательный счет</h2>
+<form action="/main/saving-account/deposit" method="POST">
+  <div>
+    <label for="amount">Сумма перевода:</label>
+    <input type="number" id="amount" name="amount" min="0.01" step="0.01" required>
+  </div>
+  <button type="submit">Перевести</button>
+</form>
+
+<a href="/main/home">На главную</a>

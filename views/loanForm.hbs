@@ -1,0 +1,27 @@
+<h1>Оформление кредита</h1>
+
+<form action="/main/loans" method="POST">
+  <div>
+    <label for="amount">Сумма кредита (от 1000 руб.):</label>
+    <input type="number" id="amount" name="amount" min="1000" required>
+  </div>
+  
+  <div>
+    <label for="term">Срок кредита:</label>
+    <select id="term" name="term" required>
+      <option value="12">1 год (10%)</option>
+      <option value="24">2 года (12%)</option>
+      <option value="36">3 года (15%)</option>
+      <option value="60">5 лет (18%)</option>
+    </select>
+  </div>
+  
+  <div>
+    <label for="purpose">Цель кредита:</label>
+    <input type="text" id="purpose" name="purpose">
+  </div>
+  
+  <button type="submit">Оформить кредит</button>
+</form>
+
+<a href="/main/home">На главную</a>

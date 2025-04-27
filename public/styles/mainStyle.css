@@ -1,103 +1,169 @@
 :root {
-  --header-height: 12vh; /* высота хедера */
-  --footer-height: 40px; /* высота футера */
+  --header-height: 10vh;
+  --footer-height: 40px;
+  --primary-color: #007bff;
+  --text-color: #ffffff;
+  --hover-color: #0056b3;
 }
 
 html, body {
   height: 100%;
   margin: 0;
+  font-family: Arial, sans-serif;
 }
 
 .mainBody {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  background-color: #f4f4f4;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* чтобы контент шёл сверху вниз */
-  position: relative;
+  min-height: 100vh;
+  background-color: #f4f4f4;
 }
 
 .mainHeader {
-  background: #007bff;
-  color: #ffffff;
-  padding: calc(var(--header-height) / 4) 0; /* например, padding сверху/снизу = четверть высоты */
-  
+  background: var(--primary-color);
+  color: var(--text-color);
   height: var(--header-height);
-  
-  text-align: center;
-  
   width: 100%;
-  
   position: fixed;
-  
   top: 0;
-  
   left: 0;
-  
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .mainH1 {
-  color: #ffffff;
+  font-size: 1.5rem;
+  margin: 0;
+  white-space: nowrap;
+  color: #f4f4f4;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .mainNav ul {
-    list-style-type: none; 
-    padding: 0; 
-    margin-top:10px; /* небольшой отступ под заголовком */
-    text-align:center;
-}
-
-.mainNav ul li {
-    display:inline-block; 
-    margin-right:20px; 
+  display: flex;
+  gap: 15px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .mainNav ul li a {
-    color:#ffffff; 
-    text-decoration:none; 
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 5px 0;
+  transition: all 0.3s ease;
 }
 
 .mainNav ul li a:hover {
-    text-decoration:underline; 
+  color: var(--hover-color);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 20px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--text-color);
+  transition: all 0.3s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+}
+
+.avatar-updating {
+  opacity: 0.5;
+}
+
+.login-link {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 15px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .content {
-    flex-grow:1;
-    max-width:50vw;
-    background-color:#ffffff;
-    overflow-y:auto;
-    height: 75vh;
-    margin-top: 19vh;
-    box-sizing:border-box;
-}
-
-/* Скрыть скроллбар (опционально) */
-::-webkit-scrollbar {
-   display:none; 
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: var(--header-height) auto var(--footer-height);
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #ffffff;
 }
 
 footer {
-   text-align:center;
+  text-align: center;
+  padding: 10px;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  height: var(--footer-height);
+  width: 100%;
+}
 
-   padding-top:10px;
+/* Адаптивность */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    padding: 10px 0;
+  }
+  
+  .mainH1 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: #f4f4f4;
+  }
+  
+  .nav-container {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .mainNav ul {
+    gap: 10px;
+  }
+}
 
-   padding-bottom:10px;
-
-   background-color:#007bff;
-
-   color:#ffffff;
-
-   width:100%;
-
-   height: var(--footer-height);
-
-   position: fixed;
-
-   left:0;
-
-   bottom:0;
-
+@media (max-width: 480px) {
+  .mainNav ul {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .user-info {
+    margin-left: 10px;
+  }
 }

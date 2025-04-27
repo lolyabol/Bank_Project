@@ -1,4 +1,47 @@
-<h2>Кредиты</h2>
-<div class="section">
-    <p>Здесь будет информация о ваших кредитах.</p>
-</div>
+<h1>Мои кредиты</h1>
+
+{{#if loans.length}}
+  <table>
+    <thead>
+      <tr>
+        <th>Сумма</th>
+        <th>Ставка</th>
+        <th>Срок</th>
+        <th>Ежемесячный платеж</th>
+        <th>Следующий платеж</th>
+        <th>Статус</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each loans}}
+        <tr>
+          <td>{{this.amount}} {{this.currency}}</td>
+          <td>{{this.interestRate}}%</td>
+          <td>{{this.term}} мес.</td>
+          <td>{{this.monthlyPayment}} {{this.currency}}</td>
+          <td>
+            {{#if this.nextPayment}}
+              {{formatDate this.nextPayment.date}}: {{this.nextPayment.amount}} {{this.currency}}
+            {{else}}
+              Нет платежей
+            {{/if}}
+          </td>
+          <td>{{this.status}}</td>
+          <td>
+            {{#if this.nextPayment}}
+              <form action="/main/loans/{{this._id}}/pay" method="POST">
+                <button type="submit">Оплатить</button>
+              </form>
+            {{/if}}
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+{{else}}
+  <p>У вас нет активных кредитов</p>
+{{/if}}
+
+<a href="/main/loans/new">Оформить новый кредит</a>
+<a href="/main/home">На главную</a>

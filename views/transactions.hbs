@@ -11,18 +11,19 @@
     <h1>История ваших транзакций</h1>
 
     {{#if transactions.length}}
-        <ul>
-            {{#each transactions}}
-              <div class="transactionContainer">
-                  <li>
-                    <strong>{{formattedDate}}</strong>: {{type}} - <span style="color: #2ecc71;">{{amount}} ₽</span>
-                  </li>
-              </div>
-            {{/each}}
-        </ul>
-    {{else}}
-        <p>У вас нет последних транзакций.</p>
-    {{/if}}
+    <ul>
+        {{#each transactions}}
+          <div class="transactionContainer">
+              <li>
+                <strong>{{formattedDate}}</strong>: {{type}} - <span style="color: #2ecc71;">{{amount}} ₽</span>
+                {{#if sourceUserName}} - От кого: {{sourceUserName}}{{/if}} 
+              </li>
+          </div>
+        {{/each}}
+    </ul>
+{{else}}
+    <p>У вас нет последних транзакций.</p>
+{{/if}}
 
     <button onclick="location.href='/main/home'">Назад на главную</button>
 </main>

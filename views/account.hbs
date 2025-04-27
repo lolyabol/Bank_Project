@@ -2,21 +2,384 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Информация о счете</title>
+  <title>Профиль пользователя</title>
   <link rel="stylesheet" href="/styles/accountStyle.css" />
+  <style>
+    .profile-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .avatar-section {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 20px;
+      border: 2px solid #ddd;
+    }
+    .info-section {
+      margin-bottom: 30px;
+    }
+    .info-item {
+      margin-bottom: 15px;
+    }
+    .edit-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .edit-btn:hover {
+      background-color: #45a049;
+    }
+    .edit-form {
+      display: none;
+      margin-top: 10px;
+    }
+    .edit-form input {
+      padding: 8px;
+      margin-right: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .save-btn {
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .save-btn:hover {
+      background-color: #0b7dda;
+    }
+    .cancel-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+    .cancel-btn:hover {
+      background-color: #da190b;
+    }
+    .account-info {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .error-message {
+      color: red;
+      margin-top: 5px;
+    }
+    .success-message {
+      color: green;
+      margin-top: 5px;
+    }
+  </style>
 </head>
 <body>
+  <div class="profile-container">
+    <h2>Профиль пользователя</h2>
+    
+    <!-- Сообщения об ошибках/успехе -->
+    {{#if message}}
+      <div class="{{message.type}}-message">{{message.text}}</div>
+    {{/if}}
+    
+    <div class="avatar-section">
+      <img id="avatar-preview" src="{{account.userId.avatarUrl}}" alt="Аватар" class="avatar">
+      <div>
+        <button id="change-avatar-btn" class="edit-btn">Изменить аватар</button>
+        <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+      </div>
+    </div>
+    
+    <div class="account-info">
+      <h3>Информация о счете</h3>
+      <p>Номер счета: {{account.accountNumber}}</p>
+      <p>Баланс: {{account.balance}} {{account.currency}}</p>
+      <p>Статус: {{account.status}}</p>
+      <p>Дата создания: {{formatDate account.createdAt}}</p>
+    </div>
+    
+    <div class="info-section">
+      <h3>Личные данные</h3>
+      
+      <div class="info-item">
+        <span>Имя пользователя: {{account.userId.fullName}}</span>
+      </div>
+      
+      <div class="info-item">
+        <span>Email: </span>
+        <span id="email-value">{{account.userId.email}}</span>
+        <button id="edit-email-btn" class="edit-btn">Изменить</button>
+        <div id="email-edit-form" class="edit-form">
+          <input type="email" id="email-input" value="{{account.userId.email}}">
+          <button id="save-email-btn" class="save-btn">Сохранить</button>
+          <button id="cancel-email-btn" class="cancel-btn">Отмена</button>
+          <div id="email-error" class="error-message"></div>
+        </div>
+      </div>
+      
+      <div class="info-item">
+        <span>Телефон: </span>
+        <span id="phone-value">{{account.userId.phone}}</span>
+        <button id="edit-phone-btn" class="edit-btn">Изменить</button>
+        <div id="phone-edit-form" class="edit-form">
+          <input type="tel" id="phone-input" value="{{account.userId.phone}}" placeholder="+7XXXXXXXXXX">
+          <button id="save-phone-btn" class="save-btn">Сохранить</button>
+          <button id="cancel-phone-btn" class="cancel-btn">Отмена</button>
+          <div id="phone-error" class="error-message"></div>
+        </div>
+      </div>
+      
+      <div class="info-item">
+        <button id="change-password-btn" class="edit-btn">Изменить пароль</button>
+        <div id="password-edit-form" class="edit-form">
+          <div>
+            <input type="password" id="current-password" placeholder="Текущий пароль">
+          </div>
+          <div>
+            <input type="password" id="new-password" placeholder="Новый пароль">
+          </div>
+          <div>
+            <input type="password" id="confirm-password" placeholder="Подтвердите новый пароль">
+          </div>
+          <button id="save-password-btn" class="save-btn">Сохранить</button>
+          <button id="cancel-password-btn" class="cancel-btn">Отмена</button>
+          <div id="password-error" class="error-message"></div>
+          <div id="password-success" class="success-message"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<h2>Информация о вашем счете</h2>
-<p>Номер счета: {{account.accountNumber}}</p>
-<p>Баланс: {{account.balance}} {{account.currency}}</p>
-<p>Статус: {{account.status}}</p>
-<p>Дата создания: {{formatDate account.createdAt}}</p>
+  <script>
+    function toggleEditForm(editBtnId, formId, cancelBtnId) {
+      const editBtn = document.getElementById(editBtnId);
+      const form = document.getElementById(formId);
+      const cancelBtn = document.getElementById(cancelBtnId);
+      
+      editBtn.addEventListener('click', () => {
+        form.style.display = 'block';
+        editBtn.style.display = 'none';
+      });
+      
+      cancelBtn.addEventListener('click', () => {
+        form.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+      });
+    }
+    
+    toggleEditForm('edit-email-btn', 'email-edit-form', 'cancel-email-btn');
+    toggleEditForm('edit-phone-btn', 'phone-edit-form', 'cancel-phone-btn');
+    
+    document.getElementById('change-password-btn').addEventListener('click', () => {
+      const form = document.getElementById('password-edit-form');
+      const btn = document.getElementById('change-password-btn');
+      
+      form.style.display = 'block';
+      btn.style.display = 'none';
+    });
+    
+    document.getElementById('cancel-password-btn').addEventListener('click', () => {
+      const form = document.getElementById('password-edit-form');
+      const btn = document.getElementById('change-password-btn');
+      
+      form.style.display = 'none';
+      btn.style.display = 'inline-block';
+      document.getElementById('password-error').textContent = '';
+      document.getElementById('password-success').textContent = '';
+      
+      document.getElementById('current-password').value = '';
+      document.getElementById('new-password').value = '';
+      document.getElementById('confirm-password').value = '';
+    });
+    
+    document.getElementById('change-avatar-btn').addEventListener('click', () => {
+      document.getElementById('avatar-upload').click();
+    });
+    
+    document.getElementById('avatar-upload').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-<h3>Данные пользователя</h3>
-<p>Имя пользователя: {{account.userId.fullName}}</p>
-<p>Email: {{account.userId.email}}</p>
-<p>Телефон: {{account.userId.phone}}</p>
+  if (!file.type.match('image.*')) {
+    alert('Пожалуйста, выберите изображение');
+    return;
+  }
 
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Размер файла не должен превышать 5MB');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  try {
+    const response = await fetch('/user/update-avatar', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok && result.success) {
+      document.getElementById('avatar-preview').src = result.avatarUrl;
+      showSuccessMessage('Аватар успешно обновлен');
+    } else {
+      showErrorMessage(result.message || 'Ошибка при загрузке аватара');
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    showErrorMessage('Произошла ошибка при загрузке аватара');
+  }
+});
+    
+    document.getElementById('save-email-btn').addEventListener('click', async () => {
+      const newEmail = document.getElementById('email-input').value;
+      const errorElement = document.getElementById('email-error');
+      
+      if (!newEmail) {
+        errorElement.textContent = 'Email не может быть пустым';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/user/update-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email: newEmail })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('email-value').textContent = newEmail;
+          document.getElementById('email-edit-form').style.display = 'none';
+          document.getElementById('edit-email-btn').style.display = 'inline-block';
+          errorElement.textContent = '';
+          
+        } else {
+          errorElement.textContent = result.message || 'Ошибка при обновлении email';
+        }
+      } catch (error) {
+        console.error('Ошибка:', error);
+        errorElement.textContent = 'Произошла ошибка при обновлении email';
+      }
+    });
+    
+    document.getElementById('save-phone-btn').addEventListener('click', async () => {
+      const newPhone = document.getElementById('phone-input').value;
+      const errorElement = document.getElementById('phone-error');
+      
+      if (!newPhone || !/^\+7\d{10}$/.test(newPhone)) {
+        errorElement.textContent = 'Введите корректный номер телефона в формате +7XXXXXXXXXX';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/user/update-phone', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ phone: newPhone })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('phone-value').textContent = newPhone;
+          document.getElementById('phone-edit-form').style.display = 'none';
+          document.getElementById('edit-phone-btn').style.display = 'inline-block';
+          errorElement.textContent = '';
+          
+        } else {
+          errorElement.textContent = result.message || 'Ошибка при обновлении телефона';
+        }
+      } catch (error) {
+        console.error('Ошибка:', error);
+        errorElement.textContent = 'Произошла ошибка при обновлении телефона';
+      }
+    });
+    
+    document.getElementById('save-password-btn').addEventListener('click', async () => {
+      const currentPassword = document.getElementById('current-password').value;
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const errorElement = document.getElementById('password-error');
+      const successElement = document.getElementById('password-success');
+      
+      errorElement.textContent = '';
+      successElement.textContent = '';
+      
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        errorElement.textContent = 'Все поля должны быть заполнены';
+        return;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        errorElement.textContent = 'Новый пароль и подтверждение не совпадают';
+        return;
+      }
+      
+      if (newPassword.length < 6) {
+        errorElement.textContent = 'Пароль должен содержать не менее 6 символов';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/user/update-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            currentPassword, 
+            newPassword 
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          successElement.textContent = 'Пароль успешно изменен';
+          
+          document.getElementById('current-password').value = '';
+          document.getElementById('new-password').value = '';
+          document.getElementById('confirm-password').value = '';
+          
+          setTimeout(() => {
+            document.getElementById('password-edit-form').style.display = 'none';
+            document.getElementById('change-password-btn').style.display = 'inline-block';
+            successElement.textContent = '';
+          }, 3000);
+        } else {
+          errorElement.textContent = result.message || 'Ошибка при изменении пароля';
+        }
+      } catch (error) {
+        console.error('Ошибка:', error);
+        errorElement.textContent = 'Произошла ошибка при изменении пароля';
+      }
+    });
+  </script>
 </body>
 </html>

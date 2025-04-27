@@ -1,24 +1,27 @@
 import express from 'express';
 import { registerUser, loginUser, logoutUser } from '../controllers/authController.js';
-import { accountCreated } from '../controllers/accountController.js';
-import { createAccount } from '../controllers/accountController.js'
+import { accountCreated, createAccountPost, createAccount } from '../controllers/accountController.js';
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-    res.render('register'); // Отключаем лейаут
+    res.render('register'); 
 });
-router.post('/register', registerUser);
-router.get('/create-account', createAccount); // Новый маршрут для создания аккаунта
 
-router.get('/account-created', accountCreated);
+router.post('/register', registerUser);
+
+router.get('/createAccount', createAccount);
+
+router.post('/createAccount', createAccountPost); 
+
+router.get('/accountCreated', accountCreated);
 
 router.get('/login', (req, res) => {
-    res.render('login'); // Отключаем лейаут
+    res.render('login'); 
 });
 
-router.post('/login', loginUser); // Обработка входа.
+router.post('/login', loginUser); 
 
-router.get('/logout', logoutUser); // Выход пользователя.
+router.get('/logout', logoutUser); 
 
 export default router;
