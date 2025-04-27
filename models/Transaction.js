@@ -4,7 +4,7 @@ const transactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   amount: { type: Number, required: true },
   date: { type: Date, default: Date.now },
-  type: { type: String, enum: ['Пополнение', 'Перевод отправлен', 'Перевод получен', 'Списание', 'Перевод на сберегательный счёт'], required: true },
+  type: { type: String, enum: ['Пополнение', 'Перевод отправлен', 'Перевод получен', 'Списание', 'Перевод на сберегательный счёт', 'Одобрение кредита', 'Оплата кредита'], required: true },
   sourceUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 });
 

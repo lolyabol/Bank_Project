@@ -6,7 +6,7 @@ import { getAccountsPage, depositToAccount, transferBetweenAccounts } from '../c
 import { getDepositPage } from '../controllers/depositController.js';
 import { getTransferPage } from '../controllers/transferController.js'; 
 import { getSavingsAccountPage, showCreateForm, createSavingsAccount, depositToSavingsAccount } from '../controllers/savingsAccountController.js';
-import { showLoanForm, createLoan, makePayment } from '../controllers/loanController.js';
+import { showLoanForm, createLoan, makePayment, loansPage } from '../controllers/loanController.js';
 import userRoutes from './userRoutes.js';
 
 import authenticateToken from '../middlewares/authMiddleware.js';
@@ -43,7 +43,9 @@ router.get('/loans/new', showLoanForm);
 
 router.post('/loans', createLoan);
 
-router.post('/loans/:loanId/pay', makePayment);
+router.get('/loans', loansPage);
+
+router.post('/loans/:loanId/payment', makePayment);
 
 router.use('/user', userRoutes);
 export default router;
