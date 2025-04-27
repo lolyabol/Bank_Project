@@ -1,7 +1,32 @@
-<h1>Создать сберегательный счет</h1>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать сберегательный счет</title>
+    <link rel="stylesheet" href="/styles/savingAccountStyle.css">
+</head>
+<body>
 
-<form action="/main/saving-account/create" method="POST">
-  <button type="submit">Создать счет</button>
-</form>
+<section>
+    <h2>Создать сберегательный счет</h2>
 
-<a href="/main/home">На главную</a>
+    <div class="greeting">
+        <p>Поздравляем! Вы на пути к созданию вашего нового сберегательного счета.</p>
+    </div>
+
+    <ul>
+        <li><strong>Минимальный депозит:</strong> 1000 рублей.</li>
+        <li><strong>Срок действия:</strong> Неограниченный.</li>
+        <li><strong>Доступ к средствам:</strong> В любое время без штрафов.</li>
+    </ul>
+
+    <form action="/main/saving-account/create" method="POST">
+        <button type="submit">Создать счет</button>
+    </form>
+
+    <a href="/main/home">На главную</a>
+</section>
+
+</body>
+</html>

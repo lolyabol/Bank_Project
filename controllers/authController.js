@@ -8,7 +8,7 @@ export const registerUser = async (req, res) => {
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Пользователь с таким адресом электронной почты уже существует.' });
+      return res.render('register', { title: 'Регистрация', message: 'Пользователь с таким адресом электронной почты уже существует.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -20,7 +20,7 @@ export const registerUser = async (req, res) => {
     res.redirect('/createAccount'); 
   } catch (error) {
     console.error('Ошибка при регистрации:', error);
-    res.status(500).json({ message: 'Ошибка при регистрации', error });
+    res.render('register', { title: 'Регистрация', message: 'Ошибка при регистрации.' });
   }
 };
 
@@ -30,11 +30,11 @@ export const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     
-    if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
+    if (!user) return res.render('login', { title: 'Вход', message: 'Пользователь не найден.' });
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     
-    if (!isPasswordValid) return res.status(401).json({ message: 'Неверный пароль' });
+    if (!isPasswordValid) return res.render('login', { title: 'Вход', message: 'Неверный пароль.' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     
@@ -45,7 +45,7 @@ export const loginUser = async (req, res) => {
     res.redirect('/main/home');
   } catch (error) {
     console.error('Ошибка при входе:', error); 
-    res.status(500).json({ message: 'Ошибка при входе', error });
+    res.render('login', { title: 'Вход', message: 'Ошибка при входе.' });
   }
 };
 
@@ -54,7 +54,7 @@ export const logoutUser = (req, res) => {
   req.session.destroy(err => {
       if (err) {
           console.error('Ошибка при выходе:', err);
-          return res.status(500).send('Ошибка при выходе');
+          return res.render('login', { title: 'Вход', message: 'Ошибка при выходе.' });
       }
       res.redirect('/login');
   });

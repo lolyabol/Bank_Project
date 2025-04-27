@@ -8,37 +8,38 @@
 </head>
 <body class="mainBody">
     <header class="mainHeader">
-        <div class="header-container">
-            <h1 class="mainH1">Добро пожаловать в Гойда-банк!</h1>
-            
-            <div class="nav-container">
-                <nav class="mainNav">
-                    <ul>
-                        <li><a href="/main/home">Домой</a></li>
-                        <li><a href="/main/account">Профиль</a></li>
-                        <li><a href="/main/transactions">Транзакции</a></li>
-                        <li><a href="/main/saving-account">Сберегательный счёт</a></li>
-                        <li><a href="/main/loans">Кредиты</a></li>
-                        <li><a href="/login" class="login-link">Выход</a></li>
-                    </ul>
-                </nav>                      
-            </div>
+    <div class="header-container">
+        <h1 class="mainH1">Добро пожаловать в Гойда-банк!</h1>
+        
+        <div class="nav-container">
+            <nav class="mainNav">
+                <ul>
+                    <li><a href="/main/home">Домой</a></li>
+                    <li><a href="/main/account">Профиль</a></li>
+                    <li><a href="/main/transactions">Транзакции</a></li>
+                    <li><a href="/main/saving-account">Сберегательный счёт</a></li>
+                    <li><a href="/main/loans">Кредиты</a></li>
+                    <li><a href="/login" class="login-link">Выход</a></li>
+                </ul>
+            </nav>                      
             {{#if user}}
-                <div class="user-info">
-                    <a href="/main/account"><img src="{{user.avatarUrl}}" alt="Аватар" class="user-avatar" id="user-avatar"></a>
-                    <span>{{user.name}}</span>
-                </div>
-                {{/if}}
-                
+            <a class="mainA" href="/main/account">
+            <div class="user-info">
+                <img src="{{user.avatarUrl}}" class="user-avatar" id="user-avatar" alt="Аватар пользователя">
+                <span style="font-size: 1.2rem;">{{user.name}}</span>
+            </div>
+            </a>   
+            {{/if}}
         </div>
-    </header>
+    </div>
+</header>
 
     <main class="content">
         {{{body}}}
     </main>
 
     <footer>
-        <p>&copy; 2023 Гойда-Банк. Все права защищены.</p>
+        <p>&copy; 2025 Гойда-Банк. Все права защищены.</p>
     </footer>
 
     <script src="/socket.io/socket.io.js"></script>

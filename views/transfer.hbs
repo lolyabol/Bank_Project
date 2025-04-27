@@ -1,6 +1,33 @@
-<form action="/main/transfer" method="POST">
-    <input type="hidden" name="fromAccountId" value="{{user.accountNumber}}" required> <!-- Скрытое поле для отправителя -->
-    <input type="text" name="recipientIdentifier" placeholder="Телефон или имя получателя" required>
-    <input type="number" name="amount" placeholder="Сумма перевода" required>
-    <button type="submit">Перевести</button>
-</form>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Перевод средств</title>
+    <link rel="stylesheet" href="/styles/transferStyle.css"> 
+</head>
+<body>
+
+<div class="container">
+    <h1>Перевод средств</h1>
+
+    {{#if message}}
+        <div class="error-message">{{message}}</div>
+    {{/if}}
+    
+    <form action="/main/transfer" method="POST">
+        <input type="hidden" name="fromAccountId" value="{{user.accountNumber}}" required>
+        
+        <label for="recipientIdentifier">Телефон получателя:</label>
+        <input type="text" id="recipientIdentifier" name="recipientIdentifier" placeholder="Телефон получателя" required>
+
+        <label for="amount">Сумма перевода:</label>
+        <input type="number" id="amount" name="amount" placeholder="Сумма перевода" required>
+
+        <button type="submit">Перевести</button>
+    </form>
+
+</div>
+
+</body>
+</html>

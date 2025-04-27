@@ -1,0 +1,66 @@
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 500px; /* Максимальная ширина формы */
+            margin: auto; /* Центрирование формы */
+        }
+
+        label {
+            display: block; /* Блоковое отображение для меток */
+            margin-bottom: 5px; /* Отступ снизу */
+            color: #555; /* Цвет текста метки */
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: calc(100% - 22px); /* Полная ширина поля ввода с учетом отступов */
+            padding: 10px; /* Отступ внутри поля ввода */
+            border-radius: 5px; /* Закругленные углы */
+            border: 1px solid #ccc; /* Цвет рамки */
+            margin-bottom: 15px; /* Отступ снизу */
+        }
+        select {
+            width: 100%; /* Полная ширина поля ввода с учетом отступов */
+            padding: 10px; /* Отступ внутри поля ввода */
+            border-radius: 5px; /* Закругленные углы */
+            border: 1px solid #ccc; /* Цвет рамки */
+            margin-bottom: 15px; /* Отступ снизу */
+        }
+        button {
+            background-color: #007bff; /* Основной цвет кнопки */
+            color: white; /* Цвет текста кнопки */
+            border: none; /* Без рамки */
+            border-radius: 5px; /* Закругленные углы кнопки */
+            padding: 10px 15px; /* Отступы внутри кнопки */
+            cursor: pointer; /* Указатель при наведении */
+            width: 100%; /* Полная ширина кнопки */
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Цвет при наведении на кнопку */
+        }
+
+        a {
+          display:inline-block ; 
+          margin-top: 1rem;
+          text-decoration:none ; 
+          color:#63a4e9 ; 
+         }
+         
+         a:hover { 
+           text-decoration :underline ; 
+         }
+         

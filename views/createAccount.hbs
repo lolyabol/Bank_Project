@@ -1,10 +1,5 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Создать аккаунт</title>
-</head>
-<body>
+    <link rel="stylesheet" href="/styles/accountStyle.css">
+    <div class="containerCreate">
     <h1>Создать новый аккаунт</h1>
 
     {{#if message}}
@@ -13,7 +8,7 @@
         </div>
     {{/if}}
 
-    <form action="/createAccount" method="POST"> 
+    <form class="createAccountForm" action="/createAccount" method="POST"> 
         <label for="userId">ID пользователя:</label>
         <p id="userId">{{userId}}</p>
 
@@ -30,9 +25,8 @@
             <option value="EUR">Евро (EUR)</option>
         </select>
 
-        <button type="submit">Создать аккаунт</button>
+        <br> <button type="submit" class="createBtn">Создать аккаунт</button>
     </form>
 
-    <p>Уже есть аккаунт? <a href="/login">Войдите здесь</a></p> 
-</body>
-</html> 
+    <p class="login">Уже есть аккаунт? <a href="/login">Войдите здесь</a></p> 
+    </div>

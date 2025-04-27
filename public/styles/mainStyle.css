@@ -1,13 +1,3 @@
-:root {
-  --footer-height: 3rem; /* Высота футера */
-  --primary-color: #007bff;
-  --text-color: #ffffff;
-  --hover-color: #0056b3;
-  --background-color: #f4f4f4;
-  --content-background: #ffffff;
-  --max-width: 1200px; /* Максимальная ширина контента */
-}
-
 html, body {
   height: 100%;
   margin: 0;
@@ -17,18 +7,16 @@ html, body {
 .mainBody {
   display: flex;
   flex-direction: column;
+  width: auto;
   min-height: 100vh; /* Минимальная высота для заполнения экрана */
 }
 
 .mainHeader {
-  background: var(--primary-color);
-  color: var(--text-color);
-  height: 20vh;
+  background: #87b9ef;
+  color: #ffffff;
+  height: auto;
   width: 100%;
   position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1000;
 }
 
 .header-container {
@@ -36,19 +24,15 @@ html, body {
   flex-direction: column;
   justify-content: space-between; /* Разделяем элементы по краям */
   align-items: center; /* Центрируем элементы по вертикали */
-  max-width: var(--max-width);
+  max-width: auto;
   margin: auto; /* Центрируем контейнер */
+  margin-bottom: 2rem;
 }
 
 .mainH1 {
-  font-size: clamp(1.5rem, 2vw + .5rem, 2rem); /* Адаптивный размер шрифта */
-}
-
-.nav-container {
-    display: flex;
-    align-items: center; 
-    flex-grow:1; /* Занимает оставшееся пространство */
-    justify-content:center; /* Центрируем ссылки навигации */
+   margin-top: 2rem;
+  font-size: 1.5rem; /* Адаптивный размер шрифта */
+  color: #ffffff;
 }
 
 .mainNav ul {
@@ -60,7 +44,7 @@ html, body {
 }
 
 .mainNav ul li a {
-    color :var(--text-color); 
+    color: #ffffff; 
     text-decoration :none; 
     font-weight :500; 
     padding :1rem ; /* Увеличиваем область клика */
@@ -70,21 +54,51 @@ html, body {
 
 .mainNav ul li a:hover {
     background-color :rgba(255,255,255,.1); /* Добавляем фон при наведении */
+    transform: scale(1.05);
 }
 
 .user-info {
-    display:flex; 
-    align-items:center; 
-    margin-left:.5rem; /* Отступ слева от пользовательской информации */
+   display: flex; 
+   align-items: center; 
+   margin-left: 1rem; /* Увеличиваем отступ слева для лучшего выравнивания */
+   background-color: #c2daf3;
+   color: #333;
+   border-radius: 50px;
+   transition: all 0.3s ease; /* Плавный переход для всех свойств */
+}
+
+.user-info:hover {
+   transform: scale(1.05); /* Увеличиваем размер контейнера при наведении */
+}
+
+.user-info span{
+   margin-right: 0.2rem;
 }
 
 .user-avatar {
-    width :3rem; 
-    height :3rem; 
-    border-radius :50%; 
-    object-fit :cover; 
-    border :2px solid var(--text-color); 
+   width: 60px; /* Уменьшаем размер аватара для лучшего вписывания в хедер */
+   height: 60px; 
+   border-radius: 50%; 
+   margin-right: 0.2rem; /* Уменьшаем отступ справа от аватара */
+   object-fit: cover; 
+   border: 2px solid #ffffff; 
 }
+
+.nav-container {
+   display: flex;
+   align-items: center; 
+   flex-grow: 1; /* Занимает оставшееся пространство */
+   justify-content: space-between; /* Разделяем навигацию и информацию о пользователе */
+}
+.mainA {
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.mainA :hover{
+   text-decoration: none;
+   size: 1.5rem;
+ }
 
 .avatar-updating {
    opacity:.5; 
@@ -104,24 +118,22 @@ html, body {
 }
 
 .content {
-   flex-grow :1 ; /* Занимает оставшееся пространство */
-   max-width :var(--max-width); /* Ограничиваем максимальную ширину контента */
-   margin:auto ; /* Центрируем контент */
-   padding-top: calc(var(--header-height) + .5rem); /* Отступ сверху для заголовка */
-   padding-bottom:.5rem ; /* Отступ снизу для футера */
-   box-sizing:border-box ; /* Учитываем отступы в ширине и высоте */
-   background-color :var(--content-background);
-   border-radius :8px ; /* Закругляем углы контента */
-   box-shadow :0px .5rem .5rem rgba(0,0,0,.1); /* Добавляем тень для глубины */
+   flex-grow: 1; 
+   margin: auto;
+   margin-top: 20vh;
+   height: auto;
+   padding-top: 2%; 
+   padding-bottom: .5rem ; 
+   box-sizing: border-box ; 
 }
 
 footer {
    text-align:center ; 
    padding-top:.5rem ;
    padding-bottom:.5rem ;
-   background-color :var(--primary-color) ;
-   color :var(--text-color) ;
-   height :var(--footer-height) ;
+   background-color: #87b9ef;
+   color: #ffffff;
+   height: auto;
 }
 
 /* Адаптивность */

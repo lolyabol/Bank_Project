@@ -14,6 +14,7 @@ import dotenv from 'dotenv';
 import { layoutSelector } from './middlewares/layoutMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
 import { attachUserData } from './middlewares/userDataMiddleware.js';
+import path from 'path';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+app.use(express.static(path.join(__dirname, 'public')));
 
 const hbs = engine({
     extname: '.hbs',
@@ -65,7 +67,6 @@ app.use('/user', userRoutes);
 io.on('connection', (socket) => {
     socket.on('join-user-room', (userId) => {
         socket.join(`user_${userId}`);
-        console.log(`User ${userId} пподключился к этой комнате`);
     });
 });
 

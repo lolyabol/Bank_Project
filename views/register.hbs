@@ -7,8 +7,11 @@
     <link rel="stylesheet" href="/styles/registerStyle.css">
 </head>
 <body>
-    <div class="container">
+<div class="container">
 <h1>Регистрация</h1>
+
+
+
 <form action="/register" method="POST">
     <label for="fullName">ФИО:</label><br/>
     <input type="text" id="fullName" name="fullName" required><br/>
@@ -20,11 +23,15 @@
     <input type="email" id="email" name="email" required><br/>
     
     <label for="phone">Телефон:</label><br/>
-    <input type="text" id="phone" name="phone" required><br/>
+    <input type="text" id="phone" name="phone" placeholder="+7 " required><br/>
 
     <button type="submit">Зарегистрироваться</button>
+
+    <a href="/login">Уже есть аккаунт? Войти</a>
+    {{#if message}}
+  <div class="error-message">{{message}}</div>
+{{/if}}
 </form>
-<a href="/login">Уже есть аккаунт? Войти</a>
 </div>
 </body>
 </html>
