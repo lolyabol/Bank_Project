@@ -50,42 +50,34 @@ export const createAccountPost = async (req, res) => {
   console.log('Создание аккаунта...');
 
   if (!userId) {
-    return res.status(401).json({ message: 'Пользователь не авторизован' });
+      return res.status(401).json({ message: 'Пользователь не авторизован' });
   }
 
   const { currency } = req.body;
 
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Пользователь не найден' });
-    }
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({ message: 'Пользователь не найден' });
+      }
 
-    const existingMainAccount = await Account.findOne({ userId, isMain: true });
-    if (existingMainAccount) {
-      return res.status(400).json({ message: 'Основной счет уже существует' });
-    }
+      const accountNumber = await generateUniqueAccountNumber();
 
-    const accountNumber = await generateUniqueAccountNumber();
+      const newAccount = new Account({
+          userId,
+          accountNumber,
+          balance: 0,
+          currency: currency || 'RUB',
+          isMain: false,
+      });
 
-    const newAccount = new Account({
-      userId: user._id,
-      accountNumber,
-      balance: 0,
-      currency: currency || 'RUB',
-      phone: user.phone,
-      name: user.name,
-      isMain: true,  
-      isSavings: false  
-    });
+      await newAccount.save();
+      console.log(`Новый аккаунт создан: ${newAccount}`);
 
-    await newAccount.save();
-    console.log(`Новый основной аккаунт создан: ${newAccount}`);
-
-    res.redirect(`/login`);
+      res.redirect(`/login`); // Перенаправление на страницу с информацией о созданном аккаунте
   } catch (error) {
-    console.error('Ошибка при создании аккаунта:', error);
-    res.status(500).json({ message: 'Ошибка при создании аккаунта', error });
+      console.error('Ошибка при создании аккаунта:', error);
+      res.status(500).json({ message: 'Ошибка при создании аккаунта', error });
   }
 };
 
@@ -283,4 +275,63 @@ export const createSavingsAccount = async (req, res) => {
       console.error('Ошибка при создании сберегательного счета:', error);
       res.status(500).json({ message: 'Ошибка при создании сберегательного счета', error });
     }
+};
+
+export const getUserAccounts = async (req, res) => {
+  const userId = req.session.userId;
+
+  if (!userId) {
+      return res.status(401).json({ message: 'Пользователь не авторизован' });
+  }
+
+  try {
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({ message: 'Пользователь не найден' });
+      }
+
+      const accounts = await user.getAccounts();
+      
+      res.render('accounts', { accounts }); // Отправка списка счетов на страницу
+  } catch (error) {
+      console.error('Ошибка при получении счетов пользователя:', error);
+      res.status(500).json({ message: 'Ошибка при получении счетов пользователя', error });
+  }
+};
+
+// В вашем accountController.js
+export const changeAccount = async (req, res) => {
+  try {
+      const { accountId } = req.params;
+      const userId = req.session.userId;
+
+      if (!userId) {
+          return res.status(401).json({ error: 'Требуется авторизация' });
+      }
+
+      // Проверяем принадлежит ли аккаунт пользователю
+      const account = await Account.findOne({ 
+          _id: accountId, 
+          userId: userId 
+      });
+
+      if (!account) {
+          return res.status(404).json({ error: 'Аккаунт не найден' });
+      }
+
+      // Сохраняем выбранный аккаунт в сессии
+      req.session.selectedAccountId = accountId;
+      await req.session.save();
+
+      return res.status(200).json({ 
+          success: true,
+          account: {
+              id: account._id,
+              balance: account.balance
+          }
+      });
+  } catch (error) {
+      console.error('Ошибка смены аккаунта:', error);
+      return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
 };

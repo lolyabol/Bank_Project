@@ -5,7 +5,6 @@ const accountSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User',
         required: true,
-        unique: false
     },
     accountNumber: {
         type: String,

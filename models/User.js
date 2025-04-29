@@ -44,5 +44,9 @@ userSchema.pre('remove', async function(next) {
   }
 });
 
+userSchema.methods.getAccounts = async function() {
+  return await Account.find({ userId: this._id });
+};
+
 const User = mongoose.model('User', userSchema);
 export default User;

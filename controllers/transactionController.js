@@ -3,11 +3,12 @@ import Transaction from '../models/Transaction.js';
 export const getTransactionsPage = async (req, res) => {
     try {
         const userId = req.user.id;
-        const transactions = await Transaction.find({ userId }).populate('sourceUserId').lean();
+        const transactions = await Transaction.find({ userId }).populate('fromAccount toAccount').lean();
 
         transactions.forEach(tx => {
             tx.formattedDate = tx.date ? new Date(tx.date).toLocaleString('ru-RU') : '';
-            tx.sourceUserName = tx.sourceUserId ? tx.sourceUserId.name : ''; 
+            tx.fromAccountName = tx.fromAccount ? tx.fromAccount.name : '';
+            tx.toAccountName = tx.toAccount ? tx.toAccount.name : '';
         });
 
         res.render('transactions', { transactions });
@@ -17,7 +18,7 @@ export const getTransactionsPage = async (req, res) => {
 };
 
 export const createTransaction = async (req, res) => {
-    const { amount } = req.body; 
+    const { amount, fromAccountId, toAccountId, currency } = req.body; 
     
     try {
         const amountNumber = Number(amount);
@@ -29,9 +30,12 @@ export const createTransaction = async (req, res) => {
 
         const transaction = new Transaction({
             userId: req.user.id,
+            fromAccount: fromAccountId,
+            toAccount: toAccountId,
             amount: Math.abs(amountNumber),
             type: transactionType,
-            sourceUserId: req.user.id 
+            currency: currency || 'RUB', 
+            date: new Date()
         });
 
         await transaction.save();

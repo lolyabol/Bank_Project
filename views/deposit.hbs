@@ -7,12 +7,48 @@
     <link rel="stylesheet" href="/styles/depositStyle.css">
 </head>
 <body>
-    <h1>Пополнение счета</h1>
-    <form action="/main/deposit" method="POST">
-        <input type="hidden" name="accountId" value="{{account._id}}">
-        <label for="amount">Сумма:</label>
-        <input type="number" name="amount" required>
-        <button type="submit">Пополнить</button>
-    </form>
+    <div class="deposit-container">
+        <h1 class="deposit-title">Пополнение счета</h1>
+        
+        {{#if error}}
+            <div class="error-message">{{error}}</div>
+        {{/if}}
+
+        {{#if accounts}}
+            <form class="deposit-form" action="/main/deposit" method="POST">
+                <div class="account-info">
+                    {{#if (gt accounts.length 1)}}
+                        <div class="account-selector">
+                            <label for="accountId">Выберите счет:</label>
+                            <select id="accountId" name="accountId" required>
+                                {{#each accounts}}
+                                    <option value="{{this._id}}" {{#if (eq this._id ../account._id)}}selected{{/if}}>
+                                        Счет {{this.accountNumber}} ({{this.balance}} ₽)
+                                    </option>
+                                {{/each}}
+                            </select>
+                        </div>
+                    {{else}}
+                        <input type="hidden" name="accountId" value="{{account._id}}">
+                        <p class="account-number">Счет: {{account.accountNumber}}</p>
+                        <p class="account-balance">Текущий баланс: {{account.balance}} ₽</p>
+                    {{/if}}
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Сумма пополнения (₽):</label>
+                    <input type="number" id="amount" name="amount" min="0.01" step="0.01" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Пополнить счет</button>
+                    <a href="/main/home" class="btn-cancel">Отмена</a>
+                </div>
+            </form>
+
+        {{else}}
+            <p class="no-accounts">У вас нет активных счетов.</p>
+        {{/if}}
+    </div>
 </body>
 </html>

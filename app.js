@@ -15,6 +15,7 @@ import { layoutSelector } from './middlewares/layoutMiddleware.js';
 import userRoutes from './routes/userRoutes.js';
 import { attachUserData } from './middlewares/userDataMiddleware.js';
 import path from 'path';
+import Handlebars from 'handlebars'; // Импортируем Handlebars
 
 dotenv.config();
 
@@ -26,6 +27,15 @@ const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Регистрация хелпера eq
+Handlebars.registerHelper('gt', function (a, b) {
+    return a > b;
+});
+
+Handlebars.registerHelper('eq', function (a, b) {
+    return a === b;
+});
 
 const hbs = engine({
     extname: '.hbs',

@@ -1,33 +1,171 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width">
-    <title>Перевод средств</title>
-    <link rel="stylesheet" href="/styles/transferStyle.css"> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Перевод средств</title>
+  <link rel="stylesheet" href="/styles/transferStyle.css">
 </head>
 <body>
-
-<div class="container">
+  <div class="transfer-container">
     <h1>Перевод средств</h1>
-
-    {{#if message}}
-        <div class="error-message">{{message}}</div>
-    {{/if}}
     
-    <form action="/main/transfer" method="POST">
-        <input type="hidden" name="fromAccountId" value="{{user.accountNumber}}" required>
-        
-        <label for="recipientIdentifier">Телефон получателя:</label>
-        <input type="text" id="recipientIdentifier" name="recipientIdentifier" placeholder="Телефон получателя" required>
+    <div id="message"></div>
+    
+    <form id="transferForm">
+      <div class="form-group">
+        <label for="fromAccountId">Счёт отправителя:</label>
+        <select id="fromAccountId" name="fromAccountId" required>
+          {{#each user.accounts}}
+            <option value="{{this._id}}" 
+                    data-currency="{{this.currency}}"
+                    data-balance="{{this.balance}}">
+              {{this.accountNumber}} ({{this.balance}} {{this.currency}})
+            </option>
+          {{/each}}
+        </select>
+      </div>
 
+      <div class="form-group">
+        <label for="recipientIdentifier">Получатель (номер счета или телефон):</label>
+        <input type="text" id="recipientIdentifier" name="recipientIdentifier" required>
+      </div>
+
+      <div class="form-group">
         <label for="amount">Сумма перевода:</label>
-        <input type="number" id="amount" name="amount" placeholder="Сумма перевода" required>
+        <div style="display: flex; align-items: center;">
+          <input type="number" id="amount" name="amount" min="0.01" step="0.01" required>
+          <span id="currencyLabel" class="currency-label">{{user.accounts.[0].currency}}</span>
+        </div>
+        <small id="balanceInfo" style="display: block; margin-top: 0.5rem;">
+          Доступно: {{user.accounts.[0].balance}} {{user.accounts.[0].currency}}
+        </small>
+      </div>
 
-        <button type="submit">Перевести</button>
+      <div id="conversionInfo">
+        <p>Будет конвертировано в: <span id="targetCurrency"></span></p>
+        <p>Сумма получателю: <span id="convertedAmount"></span></p>
+        <p>Курс: 1 <span id="fromCurrency"></span> = <span id="exchangeRate"></span> <span id="toCurrency"></span></p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Перевести</button>
+        <a href="/main/home" class="btn-cancel">Отмена</a>
+      </div>
     </form>
+  </div>
 
-</div>
+<script>
+    // Обновляем информацию при выборе счета
+    document.getElementById('fromAccountId').addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const currency = selectedOption.dataset.currency;
+      const balance = selectedOption.dataset.balance;
+      
+      document.getElementById('currencyLabel').textContent = currency;
+      document.getElementById('balanceInfo').textContent = `Доступно: ${balance} ${currency}`;
+    });
 
+    // Обработка отправки формы
+    document.getElementById('transferForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const form = e.target;
+      const submitButton = form.querySelector('button[type="submit"]');
+      submitButton.disabled = true;
+      submitButton.textContent = 'Обработка...';
+      
+      const messageEl = document.getElementById('message');
+      messageEl.className = '';
+      messageEl.textContent = '';
+      
+      try {
+        const formData = {
+          fromAccountId: form.fromAccountId.value,
+          recipientIdentifier: form.recipientIdentifier.value.trim(),
+          amount: form.amount.value
+        };
+
+        const response = await fetch('/main/transfer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          messageEl.textContent = result.message;
+          messageEl.classList.add('success');
+          
+          // Обновляем баланс в интерфейсе
+          const fromAccountSelect = document.getElementById('fromAccountId');
+          const selectedOption = fromAccountSelect.options[fromAccountSelect.selectedIndex];
+          selectedOption.dataset.balance = result.fromAccount.balance;
+          selectedOption.text = `${selectedOption.text.split(' (')[0]} (${result.fromAccount.balance} ${result.fromAccount.currency})`;
+          document.getElementById('balanceInfo').textContent = `Доступно: ${result.fromAccount.balance} ${result.fromAccount.currency}`;
+          
+          setTimeout(() => {
+            window.location.href = '/main/home';
+          }, 3000);
+        } else {
+          messageEl.textContent = result.error;
+          messageEl.classList.add('error');
+        }
+      } catch (error) {
+        messageEl.textContent = 'Ошибка соединения с сервером';
+        messageEl.classList.add('error');
+        console.error('Ошибка:', error);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Перевести';
+      }
+    });
+
+    document.getElementById('amount').addEventListener('input', async function() {
+      const amount = parseFloat(this.value);
+      if (isNaN(amount)) return; // Исправлено
+
+      const fromAccountSelect = document.getElementById('fromAccountId');
+      const fromCurrency = fromAccountSelect.options[fromAccountSelect.selectedIndex].dataset.currency;
+      const recipientIdentifier = document.getElementById('recipientIdentifier').value.trim();
+      
+      if (!recipientIdentifier) return;
+
+      try {
+        const response = await fetch(`/main/account-info?identifier=${encodeURIComponent(recipientIdentifier)}`);
+        
+        if (!response.ok) return;
+
+        const accountInfo = await response.json();
+        
+        if (accountInfo.currency === fromCurrency) {
+          document.getElementById('conversionInfo').style.display = 'none';
+          return;
+        }
+        
+        const rateResponse = await fetch(`/main/exchange-rate?from=${fromCurrency}&to=${accountInfo.currency}`);
+        
+        if (!rateResponse.ok) return;
+
+        const rateData = await rateResponse.json();
+        
+        const convertedAmount = (amount * rateData.rate).toFixed(2);
+        
+        document.getElementById('targetCurrency').textContent = accountInfo.currency;
+        document.getElementById('convertedAmount').textContent = `${convertedAmount} ${accountInfo.currency}`;
+        document.getElementById('fromCurrency').textContent = fromCurrency;
+        document.getElementById('toCurrency').textContent = accountInfo.currency;
+        document.getElementById('exchangeRate').textContent = rateData.rate.toFixed(4);
+        
+        document.getElementById('conversionInfo').style.display = 'block';
+        
+      } catch (error) {
+        console.error('Ошибка при получении информации о конвертации:', error);
+      }
+    });
+  </script>
 </body>
 </html>

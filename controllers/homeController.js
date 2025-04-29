@@ -1,19 +1,22 @@
 import Account from '../models/Account.js';
 import Transaction from '../models/Transaction.js';
-import SavingsAccount from '../models/SavingsAccount.js';
 
 export const getHome = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const account = await Account.findOne({ userId }).lean();
-    if (!account) {
-      return res.status(404).render('home', { message: 'Аккаунт не найден.' });
+    const accounts = await Account.find({ userId }).lean();
+    if (!accounts || accounts.length === 0) {
+      return res.status(404).render('home', { message: 'Аккаунты не найдены.' });
     }
 
-    let transactions = await Transaction.find({ accountId: account._id })
+    // Установите выбранный по умолчанию (первый)
+    const selectedAccountId = req.session.selectedAccountId || accounts[0]._id;
+
+    let transactions = await Transaction.find({ accountId: selectedAccountId })
       .sort({ date: -1 })
       .lean();
+    
     transactions = transactions.map(tx => ({
       ...tx,
       formattedDate: tx.date ? new Date(tx.date).toLocaleString('ru-RU', {
@@ -25,16 +28,19 @@ export const getHome = async (req, res) => {
       }) : '',
     }));
 
-    const savingsAccount = await SavingsAccount.findOne({ userId }).lean();
-
-    const accountData = {
-      balance: account.balance,
-      savingsBalance: savingsAccount ? savingsAccount.balance : null,
-    };
-
-    res.render('home', { account: accountData, transactions });
+    res.render('home', { accounts, transactions, selectedAccountId });
   } catch (error) {
     console.error('Ошибка при получении главной страницы:', error);
     res.status(500).render('home', { message: 'Ошибка при загрузке данных.' });
   }
+};
+
+// Новый метод для изменения выбранного аккаунта
+export const changeAccount = (req, res) => {
+  const { accountId } = req.params;
+  
+  // Сохраняем выбранный аккаунт в сессии
+  req.session.selectedAccountId = accountId;
+  
+  return res.status(200).send('Аккаунт изменен');
 };
