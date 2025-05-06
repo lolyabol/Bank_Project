@@ -14,14 +14,16 @@
         <label for="accountSelect">Выберите аккаунт:</label>
         <select id="accountSelect" onchange="changeAccount(this.value)">
             {{#each accounts}}
-                <option value="{{this._id}}" {{#if (eq this._id ../selectedAccountId)}}selected{{/if}}>{{this.accountNumber}} - {{this.balance}} ₽</option>
+                <option value="{{this._id}}" {{#if (eq this._id ../selectedAccountId)}}selected{{/if}}>
+                    {{this.accountNumber}} - {{this.balance}} {{this.currency}}
+                </option>
             {{/each}}
         </select>
 
-        <p>Баланс текущего счета: <span class="balance-display">{{selectedAccount.balance}}</span></p>
+        <p>Баланс текущего счета: <span class="balance-display">{{selectedAccount.balance}} {{selectedAccount.currency}}</span></p>
 
         {{#if accounts.[0].savingsBalance}}
-            <p>Баланс сберегательного счета: {{accounts.[0].savingsBalance}} ₽</p>
+            <p>Баланс сберегательного счета: {{accounts.[0].savingsBalance}} {{accounts.[0].savingsCurrency}}</p>
         {{/if}}
 
         {{#if upcomingPayments.length}}
@@ -63,65 +65,61 @@
     </section>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const selectedAccountId = document.getElementById('accountSelect').value;
-            await updateBalance(selectedAccountId);
-        });
+    document.addEventListener('DOMContentLoaded', async () => {
+        const selectedAccountId = document.getElementById('accountSelect').value;
+        await updateAccountInfo(selectedAccountId);
+    });
 
-        async function changeAccount(accountId) {
-            await updateBalance(accountId);
+    async function changeAccount(accountId) {
+        try {
+            const response = await fetch(`/main/change-account/${accountId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка сервера');
+            }
+
+            const data = await response.json();
             
-            try {
-                const response = await fetch(`/main/change-account/${accountId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include' // Важно для сессий
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Ошибка сервера');
-                }
-
-                const data = await response.json();
-                
-                // Обновляем баланс на странице без перезагрузки
-                const balanceElement = document.querySelector('.balance-display');
-                if (balanceElement && data.account) {
-                    balanceElement.textContent = `${data.account.balance} ₽`;
-                }
-                
-            } catch (error) {
-                console.error('Ошибка:', error);
-                alert(error.message || 'Ошибка соединения с сервером');
+            if (data.success) {
+                await updateAccountInfo(accountId);
             }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert(error.message || 'Ошибка соединения с сервером');
         }
+    }
 
-        async function updateBalance(accountId) {
-            try {
-                const response = await fetch(`/main/account-balance/${accountId}`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    throw new Error('Не удалось получить данные о счете');
-                }
-
-                const data = await response.json();
-                
-                // Обновляем баланс на странице
-                const balanceElement = document.querySelector('.balance-display');
-                if (balanceElement && data.balance !== undefined) {
-                    balanceElement.textContent = `${data.balance} ₽`;
-                }
-                
-            } catch (error) {
-                console.error('Ошибка:', error);
+    async function updateAccountInfo(accountId) {
+        try {
+            const balanceResponse = await fetch(`/main/account-balance/${accountId}`);
+            if (!balanceResponse.ok) {
+                throw new Error('Не удалось получить данные о счете');
             }
+
+            const { balance, currency } = await balanceResponse.json();
+            
+            const balanceElement = document.querySelector('.balance-display');
+            if (balanceElement) {
+                balanceElement.textContent = `${balance} ${currency}`;
+            }
+            
+            const accountSelect = document.getElementById('accountSelect');
+            if (accountSelect) {
+                const selectedOption = accountSelect.querySelector(`option[value="${accountId}"]`);
+                if (selectedOption) {
+                    selectedOption.text = `${selectedOption.text.split(' - ')[0]} - ${balance} ${currency}`;
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении информации:', error);
         }
-    </script>
+    }
+</script>
 </body>
 </html>

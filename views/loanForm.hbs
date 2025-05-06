@@ -1,29 +1,50 @@
 <link rel="stylesheet" href="/styles/loanFormStyle.css">
-<h1>Оформление кредита</h1>
+<div class="loan-form-container">
+    <h1>Оформление кредита</h1>
 
-<form action="/main/loans" method="POST">
-  <div>
-    <label for="amount">Сумма кредита (от 1000 руб.):</label>
-    <input type="number" id="amount" name="amount" min="1000" required>
-  </div>
-  
-  <div>
-    <label for="term">Срок кредита:</label>
-    <select id="term" name="term" required>
-      <option value="12">1 год (10%)</option>
-      <option value="24">2 года (12%)</option>
-      <option value="36">3 года (15%)</option>
-      <option value="60">5 лет (18%)</option>
-    </select>
-  </div>
-  
-  <div>
-    <label for="purpose">Цель кредита:</label>
-    <input type="text" id="purpose" name="purpose">
-  </div>
-  
-  <button type="submit">Оформить кредит</button>
+    <form action="/main/loans" method="POST">
+        <div class="form-group">
+            <label for="accountId">Счет для зачисления:</label>
+            <select id="accountId" name="accountId" required>
+                {{#each accounts}}
+                    <option value="{{this._id}}">
+                        {{this.accountNumber}} ({{this.balance}} {{this.currency}})
+                    </option>
+                {{/each}}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="amount">Сумма кредита:</label>
+            <div class="input-with-currency">
+                <input type="number" id="amount" name="amount" min="1000" required>
+                <span class="currency">руб.</span>
+            </div>
+            <small>Минимальная сумма: 1 000 руб.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="term">Срок кредита:</label>
+            <select id="term" name="term" required>
+                <option value="12">1 год (10% годовых)</option>
+                <option value="24">2 года (12% годовых)</option>
+                <option value="36">3 года (15% годовых)</option>
+                <option value="60">5 лет (18% годовых)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="purpose">Цель кредита (необязательно):</label>
+            <input type="text" id="purpose" name="purpose" placeholder="Например: ремонт квартиры">
+        </div>
+        
+        <div class="form-notice">
+            <p>💰 Кредитные средства будут зачислены на выбранный вами счет</p>
+            <p>📅 Первый платеж через 30 дней после оформления</p>
+        </div>
 
-  <a href="/main/home">На главную</a>
-</form>
+        <button type="submit" class="btn-submit">Оформить кредит</button>
 
+        <a href="/main/home" class="btn-back">На главную</a>
+    </form>
+</div>

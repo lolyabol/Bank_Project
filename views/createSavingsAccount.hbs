@@ -5,18 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Создать сберегательный счет</title>
     <link rel="stylesheet" href="/styles/savingAccountStyle.css">
+    <style>
+        .error-message {
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+        .success-message {
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
 
 <section>
     <h2>Создать сберегательный счет</h2>
 
+    {{#if successMessage}}
+        <div class="success-message">{{successMessage}}</div>
+    {{/if}}
+
+    {{#if error}}
+        <div class="error-message">{{error}}</div>
+    {{/if}}
+
     <div class="greeting">
         <p>Поздравляем! Вы на пути к созданию вашего нового сберегательного счета.</p>
     </div>
 
     <ul>
-        <li><strong>Минимальный депозит:</strong> 1000 рублей.</li>
+        <li><strong>Минимальный депозит:</strong> 1000 {{user.accounts.[0].currency}}.</li>
         <li><strong>Срок действия:</strong> Неограниченный.</li>
         <li><strong>Доступ к средствам:</strong> В любое время без штрафов.</li>
     </ul>

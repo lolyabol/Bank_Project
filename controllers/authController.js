@@ -36,7 +36,14 @@ export const loginUser = async (req, res) => {
         
         if (!isPasswordValid) return res.render('login', { title: 'Вход', message: 'Неверный пароль.' });
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        const token = jwt.sign(
+            { 
+                userId: user._id, 
+                email: user.email 
+            }, 
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' } 
+        );
         
         res.cookie('token', token, { httpOnly: true });
 

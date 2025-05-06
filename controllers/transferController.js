@@ -5,18 +5,20 @@ import mongoose from 'mongoose';
 import axios from 'axios';
 
 const exchangeRatesCache = {};
+const COMMISSION_RATE = 0.01; 
 
-async function fetchExchangeRate(fromCurrency, toCurrency) {
+export async function fetchExchangeRate(fromCurrency, toCurrency) {
   try {
-    if (exchangeRatesCache[`${fromCurrency}_${toCurrency}`]) {
-      return exchangeRatesCache[`${fromCurrency}_${toCurrency}`];
+    const cacheKey = `${fromCurrency}_${toCurrency}`;
+    if (exchangeRatesCache[cacheKey]) {
+      return exchangeRatesCache[cacheKey];
     }
 
     const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
     const rate = response.data.rates[toCurrency];
     
     if (rate) {
-      exchangeRatesCache[`${fromCurrency}_${toCurrency}`] = rate;
+      exchangeRatesCache[cacheKey] = rate;
       return rate;
     }
     throw new Error('Курс валюты не найден');
@@ -42,7 +44,8 @@ export const getTransferPage = async (req, res) => {
     res.render('transfer', { 
       user: {
         ...req.user,
-        accounts: userAccounts
+        accounts: userAccounts,
+        fromAccountCurrency: userAccounts[0].currency
       }
     });
   } catch (error) {
@@ -53,142 +56,114 @@ export const getTransferPage = async (req, res) => {
   }
 };
 
-export const transferBetweenAccounts = async (req, res) => {
-  const { fromAccountId, recipientIdentifier, amount } = req.body;
+export const transferByPhone = async (req, res) => {
+  console.log('Transfer by phone request:', {
+    body: req.body,
+    user: req.user
+  });
+
+  if (!req.user?.id) {
+    console.error('User not authenticated');
+    return res.status(401).json({ error: 'Не авторизован' });
+  }
+
+  const { fromAccountId, phoneNumber, amount } = req.body;
   const userId = req.user.id;
 
+  if (!fromAccountId || !phoneNumber || !amount) {
+    return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
+  }
+
+  const transferAmount = parseFloat(amount);
+  if (isNaN(transferAmount) || transferAmount <= 0) {
+    return res.status(400).json({ error: 'Некорректная сумма перевода' });
+  }
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    if (!fromAccountId || !recipientIdentifier || !amount) {
-      return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
+    const fromAccount = await Account.findOne({
+      _id: fromAccountId,
+      userId: userId,
+      status: 'active'
+    }).session(session);
+
+    if (!fromAccount) {
+      throw new Error('Счёт отправителя не найден или недоступен');
     }
 
-    const transferAmount = parseFloat(amount);
+    const recipientUser = await User.findOne({
+      phone: phoneNumber
+    }).session(session);
+
+    if (!recipientUser) {
+      throw new Error('Пользователь с таким номером телефона не найден');
+    }
+
+    const toAccount = await Account.findOne({
+      userId: recipientUser._id,
+      status: 'active'
+    }).session(session);
+
+    if (!toAccount) {
+      throw new Error('У получателя нет активного счёта');
+    }
+
+    if (fromAccount.balance < transferAmount) {
+      throw new Error(`Недостаточно средств. Доступно: ${fromAccount.balance} ${fromAccount.currency}`);
+    }
+
+    let convertedAmount = transferAmount;
+    let exchangeRate = 1;
+    let commission = 0;
+
+    if (fromAccount.currency !== toAccount.currency) {
+      exchangeRate = await fetchExchangeRate(fromAccount.currency, toAccount.currency);
+      convertedAmount = transferAmount * exchangeRate;
+      commission = convertedAmount * COMMISSION_RATE;
+      convertedAmount -= commission;
+    }
+
+    const transaction = new Transaction({
+      userId: userId,
+      fromAccount: fromAccount._id,
+      toAccount: toAccount._id,
+      amount: transferAmount,
+      convertedAmount: fromAccount.currency !== toAccount.currency ? convertedAmount : undefined,
+      currency: fromAccount.currency,
+      targetCurrency: toAccount.currency,
+      exchangeRate: fromAccount.currency !== toAccount.currency ? exchangeRate : undefined,
+      commission: fromAccount.currency !== toAccount.currency ? commission : undefined,
+      type: 'transfer',
+      status: 'completed'
+    });
+
+    fromAccount.balance -= transferAmount;
+    toAccount.balance += convertedAmount;
+
+    await transaction.save({ session });
+    await fromAccount.save({ session });
+    await toAccount.save({ session });
+
+    await session.commitTransaction();
     
-    // Проверка на валидность суммы
-    if (isNaN(transferAmount) || transferAmount <= 0) {
-      return res.status(400).json({ error: 'Сумма должна быть числом и больше нуля' });
-    }
-
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      // Поиск счета отправителя
-      const fromAccount = await Account.findOne({
-        _id: fromAccountId,
-        userId: userId,
-        status: 'active'
-      }).session(session);
-
-      if (!fromAccount) {
-        throw new Error('Счет отправителя не найден или недоступен');
+    return res.status(200).json({ 
+      success: true,
+      message: `Перевод успешно выполнен. ${commission > 0 ? `Комиссия: ${commission.toFixed(2)} ${toAccount.currency}` : ''}`,
+      fromAccount: {
+        balance: fromAccount.balance,
+        currency: fromAccount.currency
       }
+    });
 
-      // Проверка баланса
-      if (fromAccount.balance < transferAmount) {
-        console.error(`Недостаточно средств: требуется ${transferAmount}, доступно ${fromAccount.balance}`);
-        throw new Error(`Недостаточно средств. Доступно: ${fromAccount.balance} ${fromAccount.currency}`);
-      }
-
-      // Поиск счета получателя
-      let toAccount = await Account.findOne({
-        $or: [
-          { accountNumber: recipientIdentifier },
-          { _id: recipientIdentifier }
-        ],
-        status: 'active'
-      }).session(session);
-
-      // Если счет получателя не найден, ищем пользователя по номеру телефона
-      if (!toAccount) {
-        const recipientUser = await User.findOne({
-          phone: recipientIdentifier
-        }).session(session);
-
-        if (!recipientUser) {
-          throw new Error('Получатель не найден');
-        }
-
-        toAccount = await Account.findOne({
-          userId: recipientUser._id,
-          isMain: true,
-          status: 'active'
-        }).session(session);
-
-        if (!toAccount) {
-          throw new Error('Основной счет получателя не найден');
-        }
-      }
-
-      let convertedAmount = transferAmount;
-      let exchangeRate = 1;
-
-      // Если валюты разные, получаем курс обмена
-      if (fromAccount.currency !== toAccount.currency) {
-        exchangeRate = await fetchExchangeRate(fromAccount.currency, toAccount.currency);
-        convertedAmount = parseFloat((transferAmount * exchangeRate).toFixed(2));
-      }
-
-      // Обновляем балансы счетов
-      fromAccount.balance -= transferAmount;
-      toAccount.balance += convertedAmount;
-
-      await fromAccount.save({ session });
-      await toAccount.save({ session });
-
-      // Создаем транзакции
-      const debitTransaction = new Transaction({
-        userId: fromAccount.userId,
-        fromAccount: fromAccount._id,
-        toAccount: toAccount._id,
-        amount: transferAmount,
-        convertedAmount: fromAccount.currency !== toAccount.currency ? convertedAmount : undefined,
-        type: 'Перевод отправлен',
-        currency: fromAccount.currency,
-        targetCurrency: toAccount.currency,
-        exchangeRate: fromAccount.currency !== toAccount.currency ? exchangeRate : undefined,
-        date: new Date()
-      });
-
-      const creditTransaction = new Transaction({
-        userId: toAccount.userId,
-        fromAccount: fromAccount._id,
-        toAccount: toAccount._id,
-        amount: convertedAmount,
-        originalAmount: fromAccount.currency !== toAccount.currency ? transferAmount : undefined,
-        type: 'Перевод получен',
-        currency: toAccount.currency,
-        sourceCurrency: fromAccount.currency,
-        exchangeRate: fromAccount.currency !== toAccount.currency ? exchangeRate : undefined,
-        date: new Date()
-      });
-
-      await debitTransaction.save({ session });
-      await creditTransaction.save({ session });
-
-      await session.commitTransaction();
-
-      return res.status(200).json({ 
-        success: true,
-        message: `Перевод успешно выполнен. Сумма получателю: ${convertedAmount} ${toAccount.currency}`,
-        fromAccountBalanceAfterTransfer: fromAccount.balance
-      });
-
-    } catch (error) {
-      await session.abortTransaction();
-      
-       // Логируем ошибку с более подробной информацией
-       console.error('Ошибка при переводе:', error.message);
-       return res.status(400).json({ error: error.message });
-       
-     } finally {
-       session.endSession();
-     }
-
-   } catch (error) {
-     console.error('Ошибка при обработке перевода:', error);
-     return res.status(500).json({ error: 'Внутренняя ошибка сервера' });
-   }
+  } catch (error) {
+    await session.abortTransaction();
+    console.error('Transfer error:', error);
+    return res.status(400).json({ error: error.message });
+  } finally {
+    session.endSession();
+  }
 };
 
 export const getAccountInfo = async (req, res) => {

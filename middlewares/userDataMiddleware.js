@@ -1,15 +1,9 @@
 import User from '../models/User.js';
-import path from 'path';
 
 export const attachUserData = async (req, res, next) => {
     try {
-        console.log('Session:', req.session);
-        console.log('Session userId:', req.session.userId);
-        
-        if (req.session.userId) {
-            console.log('Finding user with ID:', req.session.userId);
-            const user = await User.findById(req.session.userId);
-            console.log('Found user:', user);
+        if (req.user?.id) { 
+            const user = await User.findById(req.user.id);
             
             if (user) {
                 res.locals.user = {
@@ -17,12 +11,12 @@ export const attachUserData = async (req, res, next) => {
                     name: user.fullName,
                     avatarUrl: user.avatarUrl || '/images/default-avatar.png'
                 };
-                console.log('Attached user data:', res.locals.user);
+                req.user = { ...req.user, ...res.locals.user };
             }
         }
         next();
     } catch (error) {
-        console.error('Error attaching user data:', error);
+        console.error('Ошибка в attachUserData:', error);
         next();
     }
 };

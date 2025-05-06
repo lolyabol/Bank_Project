@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Пополнение счета</title>
     <link rel="stylesheet" href="/styles/depositStyle.css">
+    <style>
+        .deposit-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .error-message {
+            color: #dc3545;
+            margin-bottom: 15px;
+        }
+        .account-info {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-submit, .btn-cancel {
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-submit {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+        .btn-cancel {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
     <div class="deposit-container">
@@ -23,7 +72,7 @@
                             <select id="accountId" name="accountId" required>
                                 {{#each accounts}}
                                     <option value="{{this._id}}" {{#if (eq this._id ../account._id)}}selected{{/if}}>
-                                        Счет {{this.accountNumber}} ({{this.balance}} ₽)
+                                        Счет {{this.accountNumber}} ({{this.balance}} {{this.currency}})
                                     </option>
                                 {{/each}}
                             </select>
@@ -31,13 +80,14 @@
                     {{else}}
                         <input type="hidden" name="accountId" value="{{account._id}}">
                         <p class="account-number">Счет: {{account.accountNumber}}</p>
-                        <p class="account-balance">Текущий баланс: {{account.balance}} ₽</p>
+                        <p class="account-balance">Текущий баланс: {{account.balance}} {{account.currency}}</p>
                     {{/if}}
                 </div>
 
                 <div class="form-group">
-                    <label for="amount">Сумма пополнения (₽):</label>
+                    <label for="amount">Сумма пополнения ({{account.currency}}):</label>
                     <input type="number" id="amount" name="amount" min="0.01" step="0.01" required>
+                    <small>Минимальная сумма: 0.01 {{account.currency}}</small>
                 </div>
 
                 <div class="form-actions">

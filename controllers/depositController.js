@@ -1,10 +1,10 @@
 import Account from '../models/Account.js';
+import Transaction from '../models/Transaction.js';
 
 export const getDepositPage = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Получаем все активные счета пользователя
         const accounts = await Account.find({ 
             userId,
             status: 'active' 
@@ -16,10 +16,8 @@ export const getDepositPage = async (req, res) => {
             });
         }
 
-        // Получаем ID счета из параметров или используем первый
         const accountId = req.params.accountId || req.query.accountId || accounts[0]._id;
 
-        // Находим выбранный счет
         const selectedAccount = accounts.find(acc => 
             acc._id.toString() === accountId.toString()
         ) || accounts[0];
@@ -42,53 +40,67 @@ export const postDeposit = async (req, res) => {
         const { accountId, amount } = req.body;
         const userId = req.user.id;
 
-        console.log('Received accountId:', accountId);
-        console.log('Received amount:', amount);
-        console.log('User ID:', userId);
-
-        // Валидация суммы
         const amountNumber = parseFloat(amount);
         if (isNaN(amountNumber) || amountNumber <= 0) {
+            const data = await getAccountData(userId, accountId);
             return res.status(400).render('deposit', { 
                 error: 'Сумма должна быть числом и больше нуля.',
-                ...(await getAccountData(userId, accountId))
+                ...data
             });
         }
 
-        // Проверяем наличие счета
         const account = await Account.findOne({ _id: accountId, userId });
         
         if (!account || account.status !== 'active') {
+            const data = await getAccountData(userId, accountId);
             return res.status(404).render('deposit', { 
                 error: 'Счет не найден или не принадлежит вам.',
-                ...(await getAccountData(userId, accountId))
+                ...data
             });
         }
 
-        // Обновляем баланс
-        const updatedAccount = await Account.findOneAndUpdate(
-            { _id: accountId },
-            { $inc: { balance: amountNumber } },
-            { new: true }
-        );
+        const transaction = new Transaction({
+            userId,
+            toAccount: account._id,
+            amount: amountNumber,
+            type: 'deposit',
+            currency: account.currency,
+            status: 'completed',
+            fromAccount: null, 
+            convertedAmount: amountNumber,
+            targetCurrency: account.currency,
+            exchangeRate: 1,
+            commission: 0
+        });
+
+        const [updatedAccount] = await Promise.all([
+            Account.findOneAndUpdate(
+                { _id: accountId },
+                { $inc: { balance: amountNumber } },
+                { new: true }
+            ),
+            transaction.save()
+        ]);
 
         if (!updatedAccount) {
+            const data = await getAccountData(userId, accountId);
             return res.status(500).render('deposit', { 
                 error: 'Не удалось обновить баланс счета.',
-                ...(await getAccountData(userId, accountId))
+                ...data
             });
         }
 
         res.redirect('/main/home');
     } catch (error) {
         console.error('Ошибка при пополнении счета:', error);
-        res.status(500).render('error', { 
-            message: 'Ошибка при пополнении счета.' 
+        const data = await getAccountData(req.user.id, req.body.accountId);
+        res.status(500).render('deposit', { 
+            error: 'Ошибка при пополнении счета.',
+            ...data
         });
     }
 };
 
-// Вспомогательная функция для получения данных счета
 async function getAccountData(userId, accountId = null) {
     const accounts = await Account.find({ userId, status: 'active' }).lean();
     const account = accountId 
