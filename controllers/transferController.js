@@ -10,6 +10,7 @@ const COMMISSION_RATE = 0.01;
 export async function fetchExchangeRate(fromCurrency, toCurrency) {
   try {
     const cacheKey = `${fromCurrency}_${toCurrency}`;
+    
     if (exchangeRatesCache[cacheKey]) {
       return exchangeRatesCache[cacheKey];
     }
@@ -17,16 +18,20 @@ export async function fetchExchangeRate(fromCurrency, toCurrency) {
     const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
     const rate = response.data.rates[toCurrency];
     
-    if (rate) {
-      exchangeRatesCache[cacheKey] = rate;
-      return rate;
+    if (!rate) {
+      throw new Error('Курс валюты не найден');
     }
-    throw new Error('Курс валюты не найден');
+
+    exchangeRatesCache[cacheKey] = rate;
+    setTimeout(() => delete exchangeRatesCache[cacheKey], 300000);
+
+    return rate;
   } catch (error) {
     console.error('Ошибка при получении курса валют:', error);
     throw new Error('Не удалось получить курс валют');
   }
 }
+
 
 export const getTransferPage = async (req, res) => {
   try {

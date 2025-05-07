@@ -7,33 +7,42 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .transfer-container {
-      max-width: 600px;
+      max-width: 800px;
       margin: 30px auto;
       padding: 25px;
       border-radius: 10px;
       box-shadow: 0 2px 15px rgba(0,0,0,0.1);
     }
+    .converter-card {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #0d6efd;
+    }
+    .conversion-result {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #198754;
+      margin-top: 15px;
+    }
+    .rate-info {
+      font-size: 0.9rem;
+      color: #6c757d;
+    }
+    .commission-info {
+      color: #dc3545;
+      font-size: 0.9rem;
+    }
     #phoneInput {
       direction: ltr;
       text-align: left;
     }
-    .is-invalid {
-      border-color: #dc3545;
+    .currency-selector {
+      max-width: 150px;
     }
-    .invalid-feedback {
-      color: #dc3545;
-      display: block;
-    }
-    #conversionInfo {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #f8f9fa;
-      border-radius: 5px;
-    }
-    .commission-warning {
-      color: #dc3545;
-      font-weight: bold;
+    .real-time-result {
+      transition: all 0.3s ease;
     }
   </style>
 </head>
@@ -42,13 +51,49 @@
     <div class="transfer-container">
       <h2 class="text-center mb-4">Перевод средств</h2>
       
+      <div class="converter-card">
+        <h5>Конвертер валют</h5>
+        <p class="text-muted mb-3">Укажите сумму и выберите валюту для перевода</p>
+        
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label">Я хочу перевести</label>
+            <div class="input-group">
+              <input type="number" class="form-control" id="sourceAmount" value="1000" min="0.01" step="0.01">
+              <select class="form-select currency-selector" id="sourceCurrency">
+                <option value="RUB">RUB</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <label class="form-label">Получатель получит</label>
+            <div class="input-group">
+              <input type="text" class="form-control real-time-result" id="targetAmount" readonly>
+              <select class="form-select currency-selector" id="targetCurrency">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="RUB">RUB</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-3">
+          <div class="rate-info" id="rateInfo">1 RUB = 0.011 USD</div>
+          <div class="commission-info">Включая комиссию 1% за конвертацию</div>
+        </div>
+      </div>
+      
       <div id="message" class="alert" style="display: none;"></div>
       
       <form id="transferForm">
         <input type="hidden" name="_csrf" value="{{csrfToken}}">
         
         <div class="mb-3">
-          <label class="form-label fw-bold">Счёт отправителя:</label>
+          <label class="form-label fw-bold">С вашего счёта:</label>
           <select class="form-select" id="fromAccountId" name="fromAccountId" required>
             {{#each user.accounts}}
               <option value="{{this._id}}" data-currency="{{this.currency}}" data-balance="{{this.balance}}">
@@ -78,16 +123,12 @@
                    name="amount" min="0.01" step="0.01" required>
             <span class="input-group-text" id="currencySymbol">{{user.fromAccountCurrency}}</span>
           </div>
-          <small class="text-muted">Минимальная сумма: 0.01 {{user.fromAccountCurrency}}</small>
           <div class="invalid-feedback" id="amountFeedback"></div>
         </div>
 
-        <div id="conversionInfo">
-          <h5>Информация о конвертации:</h5>
-          <p>Валюта получателя: <span id="targetCurrency"></span></p>
-          <p>Курс обмена: 1 <span id="fromCurrencyDisplay"></span> = <span id="exchangeRate"></span> <span id="toCurrencyDisplay"></span></p>
-          <p>Сумма к зачислению: <span id="convertedAmount"></span> <span id="targetCurrencyDisplay"></span></p>
-          <p class="commission-warning">Комиссия за конвертацию: <span id="commissionAmount"></span> <span id="commissionCurrency"></span></p>
+        <div id="conversionInfo" style="display: none;">
+          <div class="conversion-result" id="convertedAmountText"></div>
+          <div class="rate-info" id="exchangeRateText"></div>
         </div>
 
         <div class="form-check mb-3">
@@ -105,126 +146,105 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      const sourceAmount = document.getElementById('sourceAmount');
+      const sourceCurrency = document.getElementById('sourceCurrency');
+      const targetAmount = document.getElementById('targetAmount');
+      const targetCurrency = document.getElementById('targetCurrency');
+      const rateInfo = document.getElementById('rateInfo');
+      
       const form = document.getElementById('transferForm');
-      const messageEl = document.getElementById('message');
-      const submitBtn = document.getElementById('submitBtn');
       const fromAccountSelect = document.getElementById('fromAccountId');
-      const currencySymbol = document.getElementById('currencySymbol');
-      const balanceInfo = document.getElementById('balanceInfo');
-      const phoneInput = document.getElementById('phoneInput');
-      const phoneFeedback = document.getElementById('phoneFeedback');
       const amountInput = document.getElementById('amount');
-      const amountFeedback = document.getElementById('amountFeedback');
+      const currencySymbol = document.getElementById('currencySymbol');
+      const phoneInput = document.getElementById('phoneInput');
       const conversionInfo = document.getElementById('conversionInfo');
+      const convertedAmountText = document.getElementById('convertedAmountText');
+      const exchangeRateText = document.getElementById('exchangeRateText');
+      const submitBtn = document.getElementById('submitBtn');
 
-      fromAccountSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const currency = selectedOption.dataset.currency;
-        const balance = selectedOption.dataset.balance;
-        currencySymbol.textContent = currency;
-        balanceInfo.textContent = `Доступно: ${balance} ${currency}`;
-        checkCurrencyConversion();
-      });
+      let currentRate = 1;
+      let currentFromCurrency = 'RUB';
+      let currentToCurrency = 'USD';
 
-      phoneInput.addEventListener('input', checkCurrencyConversion);
-      amountInput.addEventListener('input', checkCurrencyConversion);
+      initConverter();
 
-      async function checkCurrencyConversion() {
-        const phone = phoneInput.value;
-        const amount = parseFloat(amountInput.value);
+      function initConverter() {
+        sourceAmount.addEventListener('input', updateConversion);
+        sourceCurrency.addEventListener('change', updateConversion);
+        targetCurrency.addEventListener('change', updateConversion);
         
-        if (!phone || phone.length !== 10 || isNaN(amount)) {
-          conversionInfo.style.display = 'none';
+        updateConversion();
+        
+        sourceAmount.addEventListener('change', updateTransferForm);
+        sourceCurrency.addEventListener('change', updateTransferForm);
+      }
+
+      async function updateConversion() {
+        const amount = parseFloat(sourceAmount.value) || 0;
+        const fromCurrency = sourceCurrency.value;
+        const toCurrency = targetCurrency.value;
+        
+        if (fromCurrency === toCurrency) {
+          targetAmount.value = amount.toFixed(2);
+          rateInfo.textContent = `1 ${fromCurrency} = 1 ${toCurrency}`;
+          currentRate = 1;
           return;
         }
 
         try {
-          const accountInfoResponse = await fetch(`/main/account-info?identifier=+7${phone}`);
-          if (!accountInfoResponse.ok) {
-            conversionInfo.style.display = 'none';
-            return;
-          }
+          const rate = await getExchangeRate(fromCurrency, toCurrency);
+          currentRate = rate;
           
-          const accountInfo = await accountInfoResponse.json();
-          const fromCurrency = currencySymbol.textContent;
-          const toCurrency = accountInfo.currency;
-
-          if (fromCurrency === toCurrency) {
-            conversionInfo.style.display = 'none';
-            return;
-          }
-
-          const rateResponse = await fetch(`/main/exchange-rate?from=${fromCurrency}&to=${toCurrency}`);
-          if (!rateResponse.ok) {
-            conversionInfo.style.display = 'none';
-            return;
-          }
+          const result = (amount * rate * 0.99).toFixed(2);
           
-          const rateData = await rateResponse.json();
-          const rate = rateData.rate;
-          const convertedAmount = (amount * rate * 0.99).toFixed(2); 
-          const commission = (amount * rate * 0.01).toFixed(2);
-
-          document.getElementById('targetCurrency').textContent = toCurrency;
-          document.getElementById('targetCurrencyDisplay').textContent = toCurrency;
-          document.getElementById('fromCurrencyDisplay').textContent = fromCurrency;
-          document.getElementById('toCurrencyDisplay').textContent = toCurrency;
-          document.getElementById('exchangeRate').textContent = rate.toFixed(4);
-          document.getElementById('convertedAmount').textContent = convertedAmount;
-          document.getElementById('commissionAmount').textContent = commission;
-          document.getElementById('commissionCurrency').textContent = toCurrency;
-
-          conversionInfo.style.display = 'block';
+          targetAmount.value = result;
+          rateInfo.textContent = `1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}`;
+          
+          currentFromCurrency = fromCurrency;
+          currentToCurrency = toCurrency;
         } catch (error) {
-          console.error('Ошибка при проверке конвертации:', error);
-          conversionInfo.style.display = 'none';
+          console.error('Ошибка конвертации:', error);
+          targetAmount.value = 'Ошибка';
+          rateInfo.textContent = 'Не удалось получить курс валют';
+        }
+      }
+
+      function updateTransferForm() {
+        amountInput.value = sourceAmount.value;
+        currencySymbol.textContent = sourceCurrency.value;
+      }
+
+      async function getExchangeRate(fromCurrency, toCurrency) {
+        try {
+          const response = await fetch(`/main/exchange-rate?from=${fromCurrency}&to=${toCurrency}`);
+          if (!response.ok) throw new Error('Не удалось получить курс');
+          const data = await response.json();
+          return data.rate;
+        } catch (error) {
+          console.error('Ошибка при получении курса:', error);
+          throw error;
         }
       }
 
       form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        let isValid = true;
-        
-        const amount = parseFloat(amountInput.value);
-        if (isNaN(amount)) {
-          amountFeedback.textContent = 'Введите корректную сумму';
-          amountInput.classList.add('is-invalid');
-          isValid = false;
-        } else if (amount < 0.01) {
-          amountFeedback.textContent = 'Минимальная сумма: 0.01';
-          amountInput.classList.add('is-invalid');
-          isValid = false;
-        }
-        
-        const phoneRegex = /^[0-9]{10}$/;
-        if (!phoneRegex.test(phoneInput.value)) {
-          phoneFeedback.textContent = 'Введите 10 цифр номера телефона';
-          phoneInput.classList.add('is-invalid');
-          isValid = false;
-        }
-        
-        if (!isValid) return;
+        if (!validateForm()) return;
         
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Перевод...';
-        messageEl.style.display = 'none';
         
         try {
-          const formData = {
-            fromAccountId: fromAccountSelect.value,
-            phoneNumber: '+7' + phoneInput.value,
-            amount: amount
-          };
-
-          console.log('Отправка данных перевода:', formData);
-
           const response = await fetch('/main/transfer-by-phone', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify({
+              fromAccountId: fromAccountSelect.value,
+              phoneNumber: '+7' + phoneInput.value,
+              amount: parseFloat(amountInput.value)
+            }),
             credentials: 'include'
           });
           
@@ -236,17 +256,9 @@
           
           showMessage(result.message, 'alert-success');
           
-          const selectedOption = fromAccountSelect.options[fromAccountSelect.selectedIndex];
-          const newBalance = result.fromAccount.balance;
-          const currency = selectedOption.dataset.currency;
-          selectedOption.dataset.balance = newBalance;
-          selectedOption.text = `${selectedOption.text.split(' (')[0]} (${newBalance} ${currency})`;
-          balanceInfo.textContent = `Доступно: ${newBalance} ${currency}`;
+          updateAccountBalance(result.fromAccount.balance);
           
-          amountInput.value = '';
-          phoneInput.value = '';
-          document.getElementById('confirmationCheck').checked = false;
-          conversionInfo.style.display = 'none';
+          resetForm();
         } catch (error) {
           console.error('Ошибка перевода:', error);
           showMessage(error.message, 'alert-danger');
@@ -255,8 +267,48 @@
           submitBtn.textContent = 'Перевести';
         }
       });
-      
+
+      function validateForm() {
+        let isValid = true;
+        
+        const amount = parseFloat(amountInput.value);
+        if (isNaN(amount) || amount <= 0) {
+          document.getElementById('amountFeedback').textContent = 'Введите корректную сумму';
+          amountInput.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          amountInput.classList.remove('is-invalid');
+        }
+        
+        const phoneRegex = /^[0-9]{10}$/;
+        if (!phoneRegex.test(phoneInput.value)) {
+          document.getElementById('phoneFeedback').textContent = 'Введите 10 цифр номера телефона';
+          phoneInput.classList.add('is-invalid');
+          isValid = false;
+        } else {
+          phoneInput.classList.remove('is-invalid');
+        }
+        
+        return isValid;
+      }
+
+      function updateAccountBalance(newBalance) {
+        const selectedOption = fromAccountSelect.options[fromAccountSelect.selectedIndex];
+        const currency = selectedOption.dataset.currency;
+        selectedOption.dataset.balance = newBalance;
+        selectedOption.text = `${selectedOption.text.split(' (')[0]} (${newBalance} ${currency})`;
+        balanceInfo.textContent = `Доступно: ${newBalance} ${currency}`;
+      }
+
+      function resetForm() {
+        amountInput.value = '';
+        phoneInput.value = '';
+        document.getElementById('confirmationCheck').checked = false;
+        conversionInfo.style.display = 'none';
+      }
+
       function showMessage(text, alertClass) {
+        const messageEl = document.getElementById('message');
         messageEl.textContent = text;
         messageEl.className = `alert ${alertClass}`;
         messageEl.style.display = 'block';
