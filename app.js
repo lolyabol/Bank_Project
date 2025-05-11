@@ -16,6 +16,7 @@ import userRoutes from './routes/userRoutes.js';
 import { attachUserData } from './middlewares/userDataMiddleware.js';
 import path from 'path';
 import Handlebars from 'handlebars'; 
+import flash from 'connect-flash';
 
 dotenv.config();
 
@@ -37,6 +38,20 @@ const hbs = engine({
         formatDate: (date) => new Date(date).toLocaleDateString()
     }
 });
+
+Handlebars.registerHelper('calcProgress', function(total, remaining) {
+    const paid = total - remaining;
+    return ((paid / total) * 100).toFixed(2);
+  });
+
+Handlebars.registerHelper('calcPaid', function(total, remaining) {
+    const paid = total - remaining;
+    return ((paid / total) * 100).toFixed(2);
+  });  
+
+Handlebars.registerHelper('inc', function(value) {
+    return parseInt(value) + 1;
+  });
 
 Handlebars.registerHelper('gt', function (a, b) {
     return a > b;
@@ -72,6 +87,8 @@ app.use((req, res, next) => {
 app.use('/uploads', express.static(join(__dirname, 'public', 'uploads')));
 
 app.set('socketio', io);
+
+app.use(flash());
 
 app.use('/', authRoutes);
 app.use('/main', mainRoutes);

@@ -1,152 +1,394 @@
-<h1>Мои кредиты</h1>
-
-{{#if loans.length}}
-<div class="loan-cards">
-    {{#each loans}}
-    <div class="loan-card">
-        <h2>Кредит</h2>
-        <p>Сумма: {{this.amount}} {{this.currency}}</p>
-        <p>Ставка: {{this.interestRate}}%</p>
-        <p>Срок: {{this.term}} мес.</p>
-        <p>Ежемесячный платеж: {{this.monthlyPayment}} {{this.currency}}</p>
-        <p>Остаток: {{this.remainingBalance}} {{this.currency}}</p>
-
-        {{#if this.payments.length}}
-        <div class="next-payment">
-            <h3>Следующий платеж:</h3>
-            <p>Дата: {{formatDate this.payments.[0].date}}</p>
-            <p>Сумма: {{this.payments.[0].amount}} {{this.currency}}</p>
-            <p>Статус: {{this.payments.[0].status}}</p>
-            
-            <form action="/main/loans/{{this._id}}/payment" method="POST">
-                <div class="form-group">
-                    <label for="paymentAmount-{{this._id}}">Сумма платежа:</label>
-                    <input type="number" 
-                           id="paymentAmount-{{this._id}}" 
-                           name="paymentAmount" 
-                           min="{{this.payments.[0].amount}}" 
-                           step="0.01"
-                           value="{{this.payments.[0].amount}}"
-                           required>
-                </div>
-                <button type="submit" class="pay-button">Оплатить</button>
-            </form>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои кредиты</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="/styles/loanStyle.css">
+  <style>
+    .conversion-info {
+      transition: all 0.3s ease;
+    }
+    .loan-card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .loan-status {
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .status-active {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-paid {
+      background-color: #f8f9fa;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <div class="header bg-primary text-white py-3">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="mb-0"><i class="fas fa-hand-holding-usd me-2"></i>Мои кредиты</h1>
         </div>
-        {{/if}}
+        <div class="col-md-4 text-md-end">
+          <a href="/main/home" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left me-1"></i> На главную
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        <button class="toggle-payments">Показать все платежи</button>
-        
-        <div class="payments" style="display:none;">
-            <h3>История платежей:</h3>
-            <table>
-                <thead>
-                    <tr>
+  <div class="container mt-4">
+    {{#if successMessage}}
+    <div class="alert alert-success animate__animated animate__fadeIn">
+      <i class="fas fa-check-circle me-2"></i>{{successMessage}}
+    </div>
+    {{/if}}
+
+    {{#if errorMessage}}
+    <div class="alert alert-danger animate__animated animate__fadeIn">
+      <i class="fas fa-exclamation-circle me-2"></i>{{errorMessage}}
+    </div>
+    {{/if}}
+
+    {{#if loans.length}}
+      <div class="row">
+        {{#each loans}}
+        <div class="col-lg-6">
+          <div class="loan-card animate__animated animate__fadeInUp p-3 mb-4 bg-white">
+            <div class="loan-header d-flex justify-content-between align-items-center mb-3">
+              <h3 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Кредит #{{inc @index}}</h3>
+              <span class="loan-status {{#if (eq status 'Активный')}}status-active{{else}}status-paid{{/if}}">
+                {{status}}
+              </span>
+            </div>
+            
+            <div class="loan-body">
+              <div class="loan-meta row mb-3">
+                <div class="col-md-6 mb-2">
+                  <div class="meta-label text-muted small">Сумма кредита</div>
+                  <div class="meta-value fw-bold">{{formatCurrency amount}} {{currency}}</div>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <div class="meta-label text-muted small">Процентная ставка</div>
+                  <div class="meta-value fw-bold">{{interestRate}}%</div>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <div class="meta-label text-muted small">Срок</div>
+                  <div class="meta-value fw-bold">{{term}} мес.</div>
+                </div>
+                <div class="col-md-6 mb-2">
+                  <div class="meta-label text-muted small">Ежемесячный платеж</div>
+                  <div class="meta-value fw-bold">{{formatCurrency monthlyPayment}} {{currency}}</div>
+                </div>
+              </div>
+              
+              <div class="progress-container mb-3">
+                <div class="meta-label text-muted small mb-1">Прогресс погашения</div>
+                <div class="progress" style="height: 10px;">
+                  <div class="progress-bar" 
+                       role="progressbar" 
+                       style="width: {{calcProgress amount remainingBalance}}%" 
+                       aria-valuenow="{{calcProgress amount remainingBalance}}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1 small">
+                  <span>Погашено: {{calcPaid amount remainingBalance}}%</span>
+                  <span>Остаток: {{formatCurrency remainingBalance}} {{currency}}</span>
+                </div>
+              </div>
+              
+              {{#if payments.length}}
+              <div class="payment-section border-top pt-3">
+                <h4 class="h5"><i class="fas fa-calendar-check me-2"></i>Следующий платеж</h4>
+                <div class="loan-meta row mb-3">
+                  <div class="col-md-6 mb-2">
+                    <div class="meta-label text-muted small">Дата платежа</div>
+                    <div class="meta-value fw-bold">{{formatDate payments.[0].date}}</div>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <div class="meta-label text-muted small">Сумма</div>
+                    <div class="meta-value fw-bold">{{formatCurrency payments.[0].amount}} {{currency}}</div>
+                  </div>
+                  <div class="col-md-6 mb-2">
+                    <div class="meta-label text-muted small">Статус</div>
+                    <div class="meta-value">
+                      <span class="badge {{#if (eq payments.[0].status 'Ожидает оплаты')}}bg-warning{{else}}bg-success{{/if}}">
+                        {{payments.[0].status}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <form id="paymentForm-{{this._id}}" 
+                      action="/main/loans/{{this._id}}/payment" 
+                      method="POST" 
+                      class="payment-form needs-validation" 
+                      novalidate
+                      data-loan-currency="{{this.currency}}">
+                  
+                  <input type="hidden" name="_csrf" value="{{../csrfToken}}">
+                  
+                  <div class="mb-3">
+                    <label for="paymentAmount-{{this._id}}" class="form-label">Сумма платежа ({{this.currency}})</label>
+                    <input type="number" 
+                          class="form-control" 
+                          id="paymentAmount-{{this._id}}" 
+                          name="paymentAmount" 
+                          min="{{this.payments.[0].amount}}" 
+                          step="0.01"
+                          value="{{this.payments.[0].amount}}"
+                          required>
+                    <div class="invalid-feedback">Укажите корректную сумму</div>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label for="fromAccountId-{{this._id}}" class="form-label">Списать с</label>
+                    <select class="form-select" id="fromAccountId-{{this._id}}" name="fromAccountId" required>
+                      {{#each ../userAccounts}}
+                        <option value="{{this._id}}" data-currency="{{this.currency}}">
+                          {{this.accountNumber}} ({{formatCurrency this.balance}} {{this.currency}})
+                        </option>
+                      {{/each}}
+                    </select>
+                  </div>
+                  
+                  <div id="conversionInfo-{{this._id}}" class="conversion-info alert alert-info mb-3" style="display:none;"></div>
+                  
+                  <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-credit-card me-2"></i>Оплатить
+                  </button>
+                </form>
+              </div>
+              {{/if}}
+              
+              <button class="toggle-payments btn btn-sm btn-outline-secondary w-100 mt-3" 
+                      data-bs-toggle="collapse" 
+                      data-bs-target="#payments-{{this._id}}">
+                <i class="fas fa-chevron-down me-1"></i>
+                <span>История платежей</span>
+              </button>
+              
+              <div class="collapse" id="payments-{{this._id}}">
+                <div class="mt-3">
+                  <table class="table table-sm">
+                    <thead class="table-light">
+                      <tr>
                         <th>Дата</th>
                         <th>Сумма</th>
                         <th>Статус</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {{#each this.payments}}
-                    <tr>
-                        <td>{{formatDate this.date}}</td>
-                        <td>{{this.amount}} {{../this.currency}}</td>
-                        <td>{{this.status}}</td>
-                    </tr>
-                    {{/each}}
-                </tbody>
-            </table>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {{#each this.payments}}
+                      <tr>
+                        <td>{{formatDate date}}</td>
+                        <td>{{formatCurrency amount}} {{../this.currency}}</td>
+                        <td>
+                          <span class="badge {{#if (eq status 'Ожидает оплаты')}}bg-warning{{else}}bg-success{{/if}}">
+                            {{status}}
+                          </span>
+                        </td>
+                      </tr>
+                      {{/each}}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
-    {{/each}}
-</div>
-{{else}}
-<p>У вас нет активных кредитов</p>
-{{/if}}
+        {{/each}}
+      </div>
+    {{else}}
+      <div class="no-loans text-center py-5 animate__animated animate__fadeIn">
+        <div class="no-loans-icon mb-3">
+          <i class="fas fa-piggy-bank fa-4x text-muted"></i>
+        </div>
+        <h3 class="mb-2">У вас нет активных кредитов</h3>
+        <p class="text-muted mb-4">Здесь будут отображаться ваши кредитные обязательства</p>
+        <a href="/main/loans/new" class="btn btn-primary">
+          <i class="fas fa-plus me-2"></i>Оформить кредит
+        </a>
+      </div>
+    {{/if}}
+  </div>
 
-<style>
-.loan-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    background-color: #f9f9f9;
-}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-.pay-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.pay-button:hover {
-    background-color: #45a049;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-table, th, td {
-    border: 1px solid #ddd;
-}
-
-th, td {
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background-color: #f2f2f2;
-}
-</style>
-
-<script>
-document.querySelectorAll('.toggle-payments').forEach(button => {
-    button.addEventListener('click', function() {
-        const paymentsDiv = this.nextElementSibling;
-        if (paymentsDiv.style.display === 'none') {
-            paymentsDiv.style.display = 'block';
-            this.textContent = 'Скрыть историю платежей';
-        } else {
-            paymentsDiv.style.display = 'none';
-            this.textContent = 'Показать все платежи';
-        }
-    });
-});
-
-document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        const paymentInput = this.querySelector('input[name="paymentAmount"]');
-        const minAmount = parseFloat(paymentInput.min);
-        const enteredAmount = parseFloat(paymentInput.value);
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      function showAlert(message, type) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.top = '20px';
+        alertDiv.style.right = '20px';
+        alertDiv.style.zIndex = '1060';
         
-        if (enteredAmount < minAmount * 0.9) {
-            e.preventDefault();
-            alert(`Минимальная сумма платежа: ${minAmount * 0.9}`);
+        const messageNode = document.createTextNode(message);
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn-close';
+        closeBtn.type = 'button';
+        closeBtn.setAttribute('data-bs-dismiss', 'alert');
+        
+        alertDiv.appendChild(messageNode);
+        alertDiv.appendChild(closeBtn);
+        document.body.appendChild(alertDiv);
+        
+        setTimeout(() => {
+          alertDiv.classList.remove('show');
+          setTimeout(() => alertDiv.remove(), 150);
+        }, 5000);
+      }
+
+      async function updateConversionInfo(form) {
+        const loanId = form.id.replace('paymentForm-', '');
+        const amountInput = form.querySelector('input[name="paymentAmount"]');
+        const accountSelect = form.querySelector('select[name="fromAccountId"]');
+        const conversionInfo = document.getElementById(`conversionInfo-${loanId}`);
+        const loanCurrency = form.dataset.loanCurrency;
+
+        if (!amountInput || !accountSelect || !conversionInfo) return;
+
+        const amount = parseFloat(amountInput.value);
+        const fromCurrency = accountSelect.options[accountSelect.selectedIndex].dataset.currency;
+
+        if (fromCurrency === loanCurrency || isNaN(amount) || amount <= 0) {
+          conversionInfo.style.display = 'none';
+          return;
         }
+
+        try {
+          conversionInfo.innerHTML = '<div class="text-center py-2"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+          conversionInfo.style.display = 'block';
+
+          const response = await axios.get(`/main/exchange-rate?from=${fromCurrency}&to=${loanCurrency}`);
+          const rate = response.data.rate;
+          const convertedAmount = amount / rate;
+          const commission = convertedAmount * 0.01;
+          const total = convertedAmount + commission;
+
+          conversionInfo.innerHTML = '';
+          conversionInfo.style.display = 'block';
+
+          const detailsDiv = document.createElement('div');
+          detailsDiv.className = 'p-2';
+
+          function createConversionRow(label, value) {
+            const row = document.createElement('div');
+            row.className = 'd-flex justify-content-between mb-1';
+
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'text-muted';
+            labelSpan.textContent = label;
+
+            const valueSpan = document.createElement('span');
+            valueSpan.className = 'fw-bold';
+            valueSpan.textContent = value;
+
+            row.appendChild(labelSpan);
+            row.appendChild(valueSpan);
+            return row;
+          }
+
+          detailsDiv.appendChild(createConversionRow('Курс:', `1 ${fromCurrency} = ${rate.toFixed(4)} ${loanCurrency}`));
+          detailsDiv.appendChild(createConversionRow('Комиссия (1%):', `${commission.toFixed(2)} ${loanCurrency}`));
+          detailsDiv.appendChild(createConversionRow('Итого к списанию:', `${total.toFixed(2)} ${fromCurrency}`));
+
+          conversionInfo.appendChild(detailsDiv);
+        } catch (error) {
+          console.error('Ошибка конвертации:', error);
+          
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'alert alert-warning mb-0';
+          
+          const icon = document.createElement('i');
+          icon.className = 'fas fa-exclamation-triangle me-2';
+          
+          const message = document.createTextNode(error.response?.data?.error || error.message || 'Ошибка получения курса');
+          
+          errorDiv.appendChild(icon);
+          errorDiv.appendChild(message);
+          conversionInfo.innerHTML = '';
+          conversionInfo.appendChild(errorDiv);
+        }
+      }
+
+      document.querySelectorAll('form[id^="paymentForm-"]').forEach(form => {
+        const amountInput = form.querySelector('input[name="paymentAmount"]');
+        const accountSelect = form.querySelector('select[name="fromAccountId"]');
+
+        amountInput?.addEventListener('input', () => updateConversionInfo(form));
+        accountSelect?.addEventListener('change', () => updateConversionInfo(form));
+
+form.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  if (!form.checkValidity()) {
+    e.stopPropagation();
+    form.classList.add('was-validated');
+    return;
+  }
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn.innerHTML;
+  
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Обработка...';
+
+  try {
+    const formData = {
+      paymentAmount: form.querySelector('input[name="paymentAmount"]').value,
+      fromAccountId: form.querySelector('select[name="fromAccountId"]').value,
+      _csrf: form.querySelector('input[name="_csrf"]').value
+    };
+
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getCookie('token')}`
+      },
+      body: JSON.stringify(formData)
     });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(result.message || 'Ошибка при выполнении платежа');
+    }
+
+    showAlert('Платеж успешно выполнен!', 'success');
+    setTimeout(() => window.location.reload(), 1500);
+  } catch (error) {
+    showAlert(error.message, 'danger');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalBtnText;
+  }
 });
-</script>
+
+        updateConversionInfo(form);
+      });
+
+      function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+      }
+    });
+  </script>
+</body>
+</html>

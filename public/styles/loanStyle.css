@@ -1,56 +1,248 @@
-.loan-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    background-color: #f9f9f9;
-}
-
-.pay-button {
-    background-color: #4CAF50;
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4cc9f0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --success-color: #4bb543;
+    --warning-color: #f8961e;
+    --danger-color: #f94144;
+  }
+  
+  body {
+    background-color: #f5f7fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
-    padding: 10px 15px;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 20px rgba(67, 97, 238, 0.15);
+  }
+  
+  .loan-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.pay-button:hover {
-    background-color: #45a049;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.form-group input {
+  }
+  
+  .loan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  }
+  
+  .loan-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 1.5rem;
+    position: relative;
+  }
+  
+  .loan-status {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+  
+  .status-active {
+    background-color: var(--accent-color);
+  }
+  
+  .status-paid {
+    background-color: var(--success-color);
+  }
+  
+  .loan-body {
+    padding: 1.5rem;
+  }
+  
+  .loan-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .meta-item {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .meta-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.3rem;
+  }
+  
+  .meta-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-color);
+  }
+  
+  .progress-container {
+    margin: 1.5rem 0;
+  }
+  
+  .progress {
+    height: 10px;
+    border-radius: 5px;
+    background-color: #e9ecef;
+  }
+  
+  .progress-bar {
+    background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+  }
+  
+  .payment-section {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  
+  .payment-form {
+    margin-top: 1rem;
+  }
+  
+  .form-control, .form-select {
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.25rem rgba(76, 201, 240, 0.25);
+  }
+  
+  .btn-pay {
+    background: linear-gradient(135deg, var(--success-color), #3aa73a);
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
     width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-table {
+  }
+  
+  .btn-pay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(75, 181, 67, 0.3);
+  }
+  
+  .conversion-info {
+    background-color: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-left: 4px solid var(--accent-color);
+  }
+  
+  .conversion-rate {
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+  
+  .conversion-amount {
+    font-weight: 700;
+    color: var(--success-color);
+  }
+  
+  .commission-badge {
+    background-color: rgba(248, 148, 30, 0.1);
+    color: var(--warning-color);
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-top: 0.5rem;
+  }
+  
+  .payments-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
-}
-
-table, th, td {
-    border: 1px solid #ddd;
-}
-
-th, td {
-    padding: 8px;
+    margin-top: 1rem;
+  }
+  
+  .payments-table th {
+    background-color: var(--light-color);
+    color: var(--dark-color);
+    font-weight: 600;
+    padding: 0.8rem;
     text-align: left;
-}
-
-th {
-    background-color: #f2f2f2;
-}
+  }
+  
+  .payments-table td {
+    padding: 0.8rem;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .payments-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+  
+  .status-pending {
+    background-color: rgba(248, 148, 30, 0.1);
+    color: var(--warning-color);
+  }
+  
+  .status-paid {
+    background-color: rgba(75, 181, 67, 0.1);
+    color: var(--success-color);
+  }
+  
+  .toggle-payments {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .no-loans {
+    text-align: center;
+    padding: 3rem;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  
+  .no-loans-icon {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+  }
+  
+  @media (max-width: 768px) {
+    .loan-meta {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .meta-item {
+      min-width: 100%;
+    }
+  }

@@ -5,33 +5,128 @@ import mongoose from 'mongoose';
 import axios from 'axios';
 
 const exchangeRatesCache = {};
-const COMMISSION_RATE = 0.01; 
+const CACHE_TTL = 300000; // 5 минут в миллисекундах
+const BASE_API_URL = 'https://api.exchangerate-api.com/v4/latest/';
+const RATE_LIMIT_DELAY = 1000; // 1 секунда между запросами
 
-export async function fetchExchangeRate(fromCurrency, toCurrency) {
+let lastRequestTime = 0;
+
+const COMMISSION_RATE = 0.01; // 1% комиссия
+
+export function getCommissionRate() {
+  return COMMISSION_RATE;
+}
+
+const logger = {
+  info: (message, data) => console.log(`[INFO] ${new Date().toISOString()} ${message}`, data),
+  warn: (message, data) => console.warn(`[WARN] ${new Date().toISOString()} ${message}`, data),
+  error: (message, data) => console.error(`[ERROR] ${new Date().toISOString()} ${message}`, data)
+};
+
+async function fetchFromPrimarySource(fromCurrency, toCurrency) {
+  // Реализация основного источника
+  const response = await axios.get(`${BASE_API_URL}${fromCurrency}`);
+  
+  if (!response.data || !response.data.rates) {
+    throw new Error('Неверный формат ответа от API');
+  }
+
+  const rate = response.data.rates[toCurrency];
+  if (!rate) {
+    throw new Error(`Курс для пары ${fromCurrency}/${toCurrency} не найден`);
+  }
+
+  return rate;
+}
+
+async function fetchFromSecondarySource(fromCurrency, toCurrency) {
+  // Реализация резервного источника (пример)
   try {
-    const cacheKey = `${fromCurrency}_${toCurrency}`;
-    
-    if (exchangeRatesCache[cacheKey]) {
-      return exchangeRatesCache[cacheKey];
-    }
-
-    const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
-    const rate = response.data.rates[toCurrency];
-    
-    if (!rate) {
-      throw new Error('Курс валюты не найден');
-    }
-
-    exchangeRatesCache[cacheKey] = rate;
-    setTimeout(() => delete exchangeRatesCache[cacheKey], 300000);
-
-    return rate;
+    const response = await axios.get(`https://api.currencyapi.com/v3/latest?base=${fromCurrency}`);
+    return response.data.data[toCurrency]?.value;
   } catch (error) {
-    console.error('Ошибка при получении курса валют:', error);
-    throw new Error('Не удалось получить курс валют');
+    throw new Error(`Резервный API недоступен: ${error.message}`);
   }
 }
 
+export async function fetchExchangeRate(fromCurrency, toCurrency) {
+  // Валидация параметров
+  if (!fromCurrency || !toCurrency) {
+    throw new Error('Необходимо указать исходную и целевую валюты');
+  }
+
+  // Приведение к верхнему регистру
+  fromCurrency = fromCurrency.toUpperCase();
+  toCurrency = toCurrency.toUpperCase();
+
+  // Проверка на одинаковые валюты
+  if (fromCurrency === toCurrency) {
+    return 1;
+  }
+
+  const cacheKey = `${fromCurrency}_${toCurrency}`;
+
+  // Проверка кеша
+  if (exchangeRatesCache[cacheKey] && 
+      Date.now() - exchangeRatesCache[cacheKey].timestamp < CACHE_TTL) {
+    logger.info('Использован кешированный курс', { pair: cacheKey });
+    return exchangeRatesCache[cacheKey].rate;
+  }
+
+  // Ограничение частоты запросов
+  const now = Date.now();
+  if (now - lastRequestTime < RATE_LIMIT_DELAY) {
+    await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_DELAY - (now - lastRequestTime)));
+  }
+  lastRequestTime = Date.now();
+
+  try {
+    // Пытаемся получить курс из основного источника
+    let rate = await fetchFromPrimarySource(fromCurrency, toCurrency);
+    
+    // Сохраняем в кеш
+    exchangeRatesCache[cacheKey] = {
+      rate,
+      timestamp: Date.now()
+    };
+
+    // Кешируем обратную пару
+    const reverseCacheKey = `${toCurrency}_${fromCurrency}`;
+    exchangeRatesCache[reverseCacheKey] = {
+      rate: 1 / rate,
+      timestamp: Date.now()
+    };
+
+    logger.info('Успешно получен курс', { pair: cacheKey, rate });
+    return rate;
+
+  } catch (primaryError) {
+    logger.warn('Ошибка основного API', { error: primaryError.message });
+
+    try {
+      // Пробуем резервный источник
+      const rate = await fetchFromSecondarySource(fromCurrency, toCurrency);
+      
+      if (!rate) {
+        throw new Error('Резервный API не вернул курс');
+      }
+
+      logger.info('Использован резервный источник', { pair: cacheKey, rate });
+      return rate;
+
+    } catch (secondaryError) {
+      logger.error('Все источники недоступны', { error: secondaryError.message });
+
+      // Пытаемся вернуть устаревший курс из кеша, если есть
+      if (exchangeRatesCache[cacheKey]) {
+        logger.warn('Используем устаревший курс из кеша', { pair: cacheKey });
+        return exchangeRatesCache[cacheKey].rate;
+      }
+
+      throw new Error(`Все источники курсов недоступны: ${secondaryError.message}`);
+    }
+  }
+}
 
 export const getTransferPage = async (req, res) => {
   try {
@@ -205,13 +300,18 @@ export const getAccountInfo = async (req, res) => {
    }
 };
 
-export const getExchangeRateHandler = async (req, res) => { 
-   try{
-     const {from , to} = req.query;
-     const rate=await fetchExchangeRate(from , to); 
-     res.json({rate});
-   } catch(error){
-     console.error('Ошибка при получении курса валют:', error);
-     res.status(500).json({error:'Не удалось получить курс валют'});
-   }
+export const getExchangeRateHandler = async (req, res) => {
+  try {
+    // Автоматическое определение валют из запроса
+    const fromCurrency = req.query.from || 'USD'; // значение по умолчанию
+    const toCurrency = req.query.to || 'RUB'; // значение по умолчанию
+    
+    const rate = await fetchExchangeRate(fromCurrency, toCurrency);
+    res.json({ rate });
+  } catch (error) {
+    console.error('Ошибка:', error);
+    res.status(400).json({ 
+      error: error.message || 'Ошибка получения курса' 
+    });
+  }
 };
